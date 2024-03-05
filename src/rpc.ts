@@ -59,7 +59,7 @@ async function startProxy() {
             console.log(chalk.grey('->'), req.body.method, chalk.grey(JSON.stringify(req.body.params)))
             let result = await provider.request(req.body)
             if (req.body.method === 'eth_chainId') {
-                result = `0x${BigInt(result).toString(16)}`
+                result = `0x${BigInt(result).toString(16).slice(-8)}`
             }
 
             // expand transactions if requested
