@@ -57,14 +57,22 @@ async function startProxy() {
     async function handleRequest(req: express.Request, res: express.Response) {
         try {
             console.log(chalk.grey('->'), req.body.method, chalk.grey(JSON.stringify(req.body.params)))
-            const result = await provider.request(req.body)
-            console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result)))
+            let result = await provider.request(req.body)
+            if (req.body.method === 'eth_chainId') {
+                result = `0x${BigInt(result).toString(16)}`
+            }
 
-            res.json({ jsonrpc: 2.0, result, id: req.body.id })
+            // expand transactions if requested
+            else if (['eth_getBlockByNumber', 'eth_getBlockByHash'].includes(req.body.method) && req.body.params[1] === true) {
+                result.transactions = await Promise.all(result.transactions.map((txId: string) => provider.request({ method: 'eth_getTransactionByHash', params: [txId] })))
+            }
+
+            // console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result)))
+            res.json({ jsonrpc: "2.0", result, id: req.body.id })
         }
         catch (e) {
             console.error(chalk.red('<!'), chalk.red(e))
-            res.json({ jsonrpc: 2.0, error: e, id: req.body.id })
+            res.json({ jsonrpc: "2.0", error: e, id: req.body.id })
         }
     }
 }
