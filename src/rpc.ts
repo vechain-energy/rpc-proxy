@@ -58,7 +58,7 @@ async function startProxy() {
         try {
             console.log(chalk.grey('->'), req.body.method, chalk.grey(JSON.stringify(req.body.params)))
             const result = await provider.request(req.body)
-            console.log(chalk.grey('<-'), chalk.grey(result))
+            console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result)))
 
             res.json({ jsonrpc: 2.0, result, id: req.body.id })
         }
