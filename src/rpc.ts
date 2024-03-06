@@ -1,4 +1,4 @@
-import { Command } from "commander"
+import { Command, Option } from "commander"
 import figlet from "figlet"
 import chalk from 'chalk'
 import { Driver, SimpleNet } from '@vechain/connex-driver'
@@ -16,8 +16,8 @@ const program = new Command()
 program
     .version("1.0.0")
     .description("vechain rpc proxy")
-    .option("-n, --node <url>", "Node URL of the blockchain", "https://node-mainnet.vechain.energy")
-    .option("-p, --port <port>", "Port to listen on", "8545")
+    .addOption(new Option('-n, --node <url>', 'Node URL of the blockchain').env('NODE').default('https://node-mainnet.vechain.energy'))
+    .addOption(new Option('-p, --port <port>', 'Port to listen on').env('PORT').default('8545'))
     .parse(process.argv)
 
 const options = program.opts()

@@ -33,7 +33,7 @@ Options:
 **Run as daemon**
 
 ```shell
-$ yarn daemon:up --name rpc -- --node https://node-mainnet.vechain.energy
+$ NODE="https://node-testnet.vechain.energy" yarn daemon:up --name rpc
 [PM2] Applying action restartProcessId on app [rpc](ids: [ 0 ])
 [PM2] [rpc](0) ✓
 [PM2] Process successfully started
