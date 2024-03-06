@@ -1,7 +1,18 @@
 {
-  "name": "rpc-proxy",
+  "name": "@vechain.energy/vet-rpc",
+  "version": "1.0.1",
   "packageManager": "yarn@3.6.1",
+  "bin": "dist/rpc.js",
+  "main": "dist/rpc.js",
   "dependencies": {
+    "homepage": "https://github.com/vechain-energy/rpc-proxy#readme",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vechain-energy/rpc-proxy.git"
+    },
+    "bugs": {
+      "url": "https://github.com/vechain-energy/rpc-proxy/issues"
+    },
     "@vechain/connex-driver": "^2.1.0",
     "@vechain/connex-framework": "^2.1.0",
     "@vechain/web3-providers-connex": "^1.1.2",
@@ -20,14 +31,15 @@
     "nodemon": "^3.1.0",
     "pm2": "^5.3.1",
     "ts-node": "^10.9.2",
+    "tsc": "^2.0.4",
     "typescript": "^5.3.3"
   },
   "scripts": {
     "build": "tsc",
-    "postinstall": "tsc",
     "start": "node dist/rpc.js",
     "daemon:up": "pm2 start dist/rpc.js",
     "daemon:down": "pm2 stop dist/rpc.js",
-    "watch": "nodemon -e ts --exec 'yarn build && yarn start'"
+    "watch": "nodemon -e ts --exec 'yarn build && yarn start'",
+    "prepublish": "tsc"
   }
 }

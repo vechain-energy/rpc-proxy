@@ -3,34 +3,34 @@ A simplified RPC proxy for accessing Vechain nodes via RPC calls. Publishing tra
 **Setup**
 
 ```shell
-yarn install
-yarn start --node https://node-mainnet.vechain.energy --port 8545
+npm install -g @vechain.energy/vet-rpc
+vet-rpc --node https://node-mainnet.vechain.energy --port 8545
 ```
 
 
 **Run locally**
 
 ```shell
-$ yarn start --help
+$ vet-rpc --help
                   
   _ __ _ __   ___ 
  | '__| '_ \ / __|
  | |  | |_) | (__ 
  |_|  | .__/ \___|
       |_|         
-Usage: rpc [options]
+
+Usage: vet-rpc [options]
 
 vechain rpc proxy
 
 Options:
   -V, --version      output the version number
-  -n, --node <url>   Node URL of the blockchain (default: "https://node-mainnet.vechain.energy")
-  -p, --port <port>  Port to listen on (default: "8545")
+  -n, --node <url>   Node URL of the blockchain (default: "https://node-mainnet.vechain.energy", env: NODE)
+  -p, --port <port>  Port to listen on (default: "8545", env: PORT)
   -h, --help         display help for command
-
 ```
 
-**Run as daemon**
+**Run as daemon from code**
 
 ```shell
 $ NODE="https://node-testnet.vechain.energy" yarn daemon:up --name rpc
