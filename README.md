@@ -76,3 +76,10 @@ $ curl -XPOST "http://localhost:8545" -H "content-type: application/json" -d '
 '
 {"jsonrpc":2,"result":"14018334920824264832118464179726739019961432051877733167310318607178","id":"1"}
 ```
+
+## Known Issues
+
+- eth_call does not handle blockHash correctly
+- eth_chainId can issue overflows on client side if returned in full
+- eth_getBlockByNumber and eth_getBlockByNumber do not return transaction details, when request
+- eth_getTransactionByHash throws in transaction formatter in certain situations
