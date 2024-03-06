@@ -56,14 +56,20 @@ async function startProxy() {
     // This function handles incoming requests, processes them using the provider, and returns the appropriate response.
     async function handleRequest(req: express.Request, res: express.Response) {
         try {
-            console.log(chalk.grey('->'), req.body.method, chalk.grey(JSON.stringify(req.body.params)))
-            let result = await provider.request(req.body)
-            if (req.body.method === 'eth_chainId') {
+            let { method, params } = req.body
+            console.log(chalk.grey('->'), method, chalk.grey(JSON.stringify(params)))
+
+            if (method === 'eth_call' && params.length === 2 && params[1].blockHash) {
+                params[1] = params[1].blockHash
+            }
+
+            let result = await provider.request({ method, params })
+            if (method === 'eth_chainId') {
                 result = `0x${BigInt(result).toString(16).slice(-8)}`
             }
 
             // expand transactions if requested
-            else if (['eth_getBlockByNumber', 'eth_getBlockByHash'].includes(req.body.method) && req.body.params[1] === true) {
+            else if (['eth_getBlockByNumber', 'eth_getBlockByHash'].includes(method) && params[1] === true) {
                 result.transactions = await Promise.all(result.transactions.map((txId: string) => provider.request({ method: 'eth_getTransactionByHash', params: [txId] })))
             }
 
