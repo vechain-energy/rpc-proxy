@@ -1,18 +1,18 @@
 {
   "name": "@vechain.energy/vet-rpc",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "packageManager": "yarn@3.6.1",
   "bin": "dist/rpc.js",
   "main": "dist/rpc.js",
+  "homepage": "https://github.com/vechain-energy/rpc-proxy#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vechain-energy/rpc-proxy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vechain-energy/rpc-proxy/issues"
+  },
   "dependencies": {
-    "homepage": "https://github.com/vechain-energy/rpc-proxy#readme",
-    "repository": {
-      "type": "git",
-      "url": "git+https://github.com/vechain-energy/rpc-proxy.git"
-    },
-    "bugs": {
-      "url": "https://github.com/vechain-energy/rpc-proxy/issues"
-    },
     "@vechain/connex-driver": "^2.1.0",
     "@vechain/connex-framework": "^2.1.0",
     "@vechain/web3-providers-connex": "^1.1.2",
