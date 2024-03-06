@@ -72,13 +72,24 @@ async function startProxy() {
 
             // expand transactions if requested
             else if (['eth_getBlockByNumber', 'eth_getBlockByHash'].includes(method) && params[1] === true) {
-                result.transactions = await Promise.all(result.transactions.map((txId: string) => provider.request({ method: 'eth_getTransactionByHash', params: [txId] })))
+                // temporarily remove failing formatter: <! Error: Cannot read properties of undefined (reading 'to')
+                // curl -XPOST "http://localhost:8545" -H "content-type: application/json" -d '{ "jsonrpc": "2.0", "method": "eth_getBlockByHash", "params": ["0x00b3e1bd924f9d5243792b4361f1c509473bdfdd5418be8a738a31ffa3bedada",true], "id": "1" }'
+                result.transactions = (await Promise.all(result.transactions.map(async (txId: string) => {
+                    try {
+                        return await provider.request({ method: 'eth_getTransactionByHash', params: [txId] })
+                    }
+                    catch {
+                        return null
+                    }
+                })))
+                    .filter((tx: any) => tx !== null)
             }
 
             // console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result)))
             res.json({ jsonrpc: "2.0", result, id: req.body.id })
         }
         catch (e) {
+            console.log(e)
             console.error(chalk.red('<!'), chalk.red(e))
             res.json({ jsonrpc: "2.0", error: e, id: req.body.id })
         }
