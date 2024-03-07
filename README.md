@@ -25,7 +25,7 @@ vechain rpc proxy
 
 Options:
   -V, --version      output the version number
-  -n, --node <url>   Node URL of the blockchain (default: "https://node-mainnet.vechain.energy", env: NODE)
+  -n, --node <url>   Node URL of the blockchain (default: "https://node-mainnet.vechain.energy", env: NODE_URL)
   -p, --port <port>  Port to listen on (default: "8545", env: PORT)
   -h, --help         display help for command
 ```
@@ -33,7 +33,7 @@ Options:
 **Run as daemon from code**
 
 ```shell
-$ NODE="https://node-testnet.vechain.energy" yarn daemon:up --name rpc
+$ NODE_URL="https://node-testnet.vechain.energy" yarn daemon:up --name rpc
 [PM2] Applying action restartProcessId on app [rpc](ids: [ 0 ])
 [PM2] [rpc](0) ✓
 [PM2] Process successfully started

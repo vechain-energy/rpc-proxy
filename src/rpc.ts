@@ -18,7 +18,7 @@ const program = new Command()
 program
     .version("1.0.0")
     .description("vechain rpc proxy")
-    .addOption(new Option('-n, --node <url>', 'Node URL of the blockchain').env('NODE').default('https://node-mainnet.vechain.energy'))
+    .addOption(new Option('-n, --node <url>', 'Node URL of the blockchain').env('NODE_URL').default('https://node-mainnet.vechain.energy'))
     .addOption(new Option('-p, --port <port>', 'Port to listen on').env('PORT').default('8545'))
     .parse(process.argv)
 
