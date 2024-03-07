@@ -86,12 +86,16 @@ async function startProxy() {
             }
 
             // console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result)))
-            res.json({ jsonrpc: "2.0", result, id: req.body.id })
+            res.json({ jsonrpc: "2.0", id: req.body.id, result })
         }
-        catch (e) {
-            console.log(e)
-            console.error(chalk.red('<!'), chalk.red(e))
-            res.json({ jsonrpc: "2.0", error: e, id: req.body.id })
+        catch (e: any) {
+            if ('data' in e) {
+                res.json({ jsonrpc: "2.0", id: req.body.id, result: e.data })
+            }
+            else {
+                console.error(chalk.red('<!'), chalk.red(e))
+                res.json({ jsonrpc: "2.0", id: req.body.id, error: e })
+            }
         }
     }
 }
