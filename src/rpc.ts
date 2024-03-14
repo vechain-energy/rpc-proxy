@@ -20,7 +20,7 @@ program
     .description("vechain rpc proxy")
     .addOption(new Option('-n, --node <url>', 'Node URL of the blockchain').env('NODE_URL').default('https://node-mainnet.vechain.energy'))
     .addOption(new Option('-p, --port <port>', 'Port to listen on').env('PORT').default('8545'))
-    .addOption(new Option('-v, verbose', 'Enable more verbose logging'))
+    .addOption(new Option('-v, --verbose', 'Enables more detailed logging'))
     .parse(process.argv)
 
 const options = program.opts()
