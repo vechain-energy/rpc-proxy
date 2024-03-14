@@ -22,7 +22,6 @@ import {
 import { ErrMsg, ErrCode } from './error';
 import { zeroBytes8, zeroBytes32, zeroBytes256 } from './common';
 import { ProviderRpcError } from './eip1193';
-import internal from 'stream';
 import * as web3Utils from 'web3-utils';
 
 export class Formatter {

@@ -458,14 +458,11 @@ export class Provider extends EventEmitter implements IProvider {
 
 				const txInd = numberToHex(await this._getTransactionIndex(blkId, hash));
 				const logIndOffset = await this._getNumOfLogsAhead(blkId, hash);
-				for(var x= 0; x < receipt.outputs.length; x ++) {
-					receipt.outputs[x];
-				}
 				const n = receipt.outputs[0]?.events.length || 0;
 				const logInds = new Array<number>(n)
 					.fill(logIndOffset)
 					.map((_, i) => { return numberToHex(logIndOffset + i); });
-				
+
 				return this._formatter.outputClausesReceiptFormatter(
 					{
 						...receipt, ...{
@@ -565,7 +562,7 @@ export class Provider extends EventEmitter implements IProvider {
 	}
 
 	private _getChainId = async (_: any[]) => {
-		return BigInt((this.chainId)).toString();
+		return this.chainId;
 	}
 
 	private _getBlockByNumber = async (params: any[]) => {

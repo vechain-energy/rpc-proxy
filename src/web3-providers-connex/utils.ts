@@ -1,7 +1,4 @@
-
-
 'use strict';
-
 
 import { randomBytes } from 'crypto';
 import * as web3Validator from 'web3-validator';
@@ -61,7 +58,7 @@ export function hexToNumber(hex: string): number {
 }
 
 export function toHex(value: number | string): string {
-	return web3Utils.toHex(BigInt(value).toString());
+	return web3Utils.toHex(BigInt(value));
 }
 
 export function randAddr(): string {
