@@ -460,7 +460,7 @@ __metadata:
     "@types/figlet": ^1.5.8
     "@types/mocha": ^10.0.1
     "@types/node": ^20.11.24
-    "@vechain/connex-driver": ^2.0.10
+    "@vechain/connex-driver": ^2.1.0
     "@vechain/connex-framework": ^2.1.0
     "@vechain/connex-types": ^2.0.2
     chalk: 4
@@ -485,7 +485,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@vechain/connex-driver@npm:^2.0.10":
+"@vechain/connex-driver@npm:^2.1.0":
   version: 2.1.0
   resolution: "@vechain/connex-driver@npm:2.1.0"
   dependencies:
