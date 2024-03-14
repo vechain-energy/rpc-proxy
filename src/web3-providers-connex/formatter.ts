@@ -146,7 +146,7 @@ export class Formatter {
 		if (o1.data) {
 			data = o1.data;
 		}
-		if(o1.input) {
+		if (o1.input) {
 			data = o1.input;
 		}
 
@@ -296,7 +296,6 @@ export class Formatter {
 		if (receipt.outputs.length > 0 && receipt.outputs[0].events.length > 0) {
 			receipt.outputs.forEach(output => {
 				output.events.forEach((event) => {
-					logIndex++
 					logs.push({
 						blockHash: receipt.meta.blockID,
 						blockNumber: toHex(receipt.meta.blockNumber),
@@ -310,6 +309,7 @@ export class Formatter {
 						transactionIndex: receipt.transactionIndex,
 						logIndex: web3Utils.toHex(logIndex),
 					})
+					logIndex++
 				})
 			})
 		}
