@@ -85,7 +85,7 @@ async function startProxy() {
                     .filter((tx: any) => tx !== null)
             }
 
-            // console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result)))
+            console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result)))
             res.json({ jsonrpc: "2.0", id: req.body.id, result })
         }
         catch (e: any) {

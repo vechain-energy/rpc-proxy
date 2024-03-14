@@ -458,6 +458,9 @@ export class Provider extends EventEmitter implements IProvider {
 
 				const txInd = numberToHex(await this._getTransactionIndex(blkId, hash));
 				const logIndOffset = await this._getNumOfLogsAhead(blkId, hash);
+				for(var x= 0; x < receipt.outputs.length; x ++) {
+					receipt.outputs[x];
+				}
 				const n = receipt.outputs[0]?.events.length || 0;
 				const logInds = new Array<number>(n)
 					.fill(logIndOffset)
