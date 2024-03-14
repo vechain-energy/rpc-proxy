@@ -457,17 +457,10 @@ export class Provider extends EventEmitter implements IProvider {
 				if (!tx) { return Promise.reject(new ProviderRpcError(ErrCode.Default, 'Tx not found')); }
 
 				const txInd = numberToHex(await this._getTransactionIndex(blkId, hash));
-				const logIndOffset = await this._getNumOfLogsAhead(blkId, hash);
-				const n = receipt.outputs[0]?.events.length || 0;
-				const logInds = new Array<number>(n)
-					.fill(logIndOffset)
-					.map((_, i) => { return numberToHex(logIndOffset + i); });
-
-				return this._formatter.outputClausesReceiptFormatter(
+				return this._formatter.outputReceiptFormatter(
 					{
 						...receipt, ...{
 							transactionIndex: txInd,
-							logInds: logInds,
 							from: tx.origin,
 							to: tx.clauses[0].to
 						},

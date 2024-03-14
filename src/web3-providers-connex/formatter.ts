@@ -141,7 +141,7 @@ export class Formatter {
 
 	private _sendTransaction = (params: any[]) => {
 		const o1: TxObj = params[0];
-		
+
 		let data: string = '0x';
 		if (o1.data) {
 			data = o1.data;
@@ -287,27 +287,32 @@ export class Formatter {
 	outputReceiptFormatter = (
 		receipt: Connex.Thor.Transaction.Receipt & {
 			transactionIndex: string,
-			logInds: string[],
 			from: string,
 			to: string | null
 		}
 	): RetReceipt => {
-		const logs: RetLog[] = (receipt.outputs.length > 0 && receipt.outputs[0].events.length > 0) ?
-			receipt.outputs[0].events.map((event, index) => {
-				return {
-					blockHash: receipt.meta.blockID,
-					blockNumber: toHex(receipt.meta.blockNumber),
-					transactionHash: receipt.meta.txID,
-					address: event.address,
-					topics: event.topics.map((x) => x),
-					data: event.data,
+		const logs: RetLog[] = []
+		let logIndex = 0
+		if (receipt.outputs.length > 0 && receipt.outputs[0].events.length > 0) {
+			receipt.outputs.forEach(output => {
+				output.events.forEach((event) => {
+					logIndex++
+					logs.push({
+						blockHash: receipt.meta.blockID,
+						blockNumber: toHex(receipt.meta.blockNumber),
+						transactionHash: receipt.meta.txID,
+						address: event.address,
+						topics: event.topics.map((x) => x),
+						data: event.data,
 
-					removed: false,
+						removed: false,
 
-					transactionIndex: receipt.transactionIndex,
-					logIndex: receipt.logInds[index],
-				}
-			}) : [];
+						transactionIndex: receipt.transactionIndex,
+						logIndex: web3Utils.toHex(logIndex),
+					})
+				})
+			})
+		}
 
 		return {
 			status: !receipt.reverted ? '0x1' : '0x0',
@@ -325,58 +330,6 @@ export class Formatter {
 
 			contractAddress: (receipt.outputs.length && receipt.outputs[0].contractAddress) ? receipt.outputs[0].contractAddress : null,
 			logs: logs,
-		};
-	}
-
-	outputClausesReceiptFormatter = (
-		receipt: Connex.Thor.Transaction.Receipt & {
-			transactionIndex: string,
-			logInds: string[],
-			from: string,
-			to: string | null
-		}
-	): RetReceipt => {
-		let eventsLog:any[] =[]
-
-		if((receipt.outputs.length > 0 && receipt.outputs[0].events.length > 0)) {
-			let newIndex:number = 0;
-
-			receipt.outputs.map((output:any, index) => {
-			output.events.map((event:any, index:number) => {
-				newIndex++
-				let eventRet:RetLog = {
-					address: event.address,
-					data: event.data,
-					topics: event.topics.map((x:any) => x),
-					transactionHash: receipt.meta.txID,
-					blockHash: receipt.meta.blockID,
-					blockNumber: toHex(receipt.meta.blockNumber),
-					removed: false,
-					logIndex: web3Utils.toHex(newIndex),
-					transactionIndex: receipt.transactionIndex
-				}
-				eventsLog.push(eventRet)
-			})
-		})} 
-			
-		
-
-		return {
-			status: !receipt.reverted ? '0x1' : '0x0',
-
-			blockHash: receipt.meta.blockID,
-			blockNumber: toHex(receipt.meta.blockNumber),
-			transactionHash: receipt.meta.txID,
-			gasUsed: toHex(receipt.gasUsed),
-			transactionIndex: receipt.transactionIndex,
-			from: receipt.from,
-			to: receipt.to,
-
-			cumulativeGasUsed: '0x0',
-			logsBloom: zeroBytes256,
-
-			contractAddress: (receipt.outputs.length && receipt.outputs[0].contractAddress) ? receipt.outputs[0].contractAddress : null,
-			logs: eventsLog,
 		};
 	}
 
