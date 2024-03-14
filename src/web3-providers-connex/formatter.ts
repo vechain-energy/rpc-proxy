@@ -22,7 +22,6 @@ import {
 import { ErrMsg, ErrCode } from './error';
 import { zeroBytes8, zeroBytes32, zeroBytes256 } from './common';
 import { ProviderRpcError } from './eip1193';
-import * as web3Utils from 'web3-utils';
 
 export class Formatter {
 	private readonly _connex: Connex;
@@ -307,7 +306,7 @@ export class Formatter {
 						removed: false,
 
 						transactionIndex: receipt.transactionIndex,
-						logIndex: web3Utils.toHex(logIndex),
+						logIndex: `0x${Number(logIndex).toString(16)}`
 					})
 					logIndex++
 				})
