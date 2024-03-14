@@ -4,7 +4,7 @@ import { Command, Option } from "commander"
 import figlet from "figlet"
 import chalk from 'chalk'
 import { Driver, SimpleNet } from '@vechain/connex-driver'
-import { ProviderWeb3 } from '@vechain/web3-providers-connex'
+import { ProviderWeb3 } from './web3-providers-connex'
 import { Framework } from '@vechain/connex-framework'
 import express from 'express'
 import cors from 'cors'
