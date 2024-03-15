@@ -27,6 +27,7 @@ Options:
   -V, --version      output the version number
   -n, --node <url>   Node URL of the blockchain (default: "https://node-mainnet.vechain.energy", env: NODE_URL)
   -p, --port <port>  Port to listen on (default: "8545", env: PORT)
+  -v, --verbose      Enables more detailed logging
   -h, --help         display help for command
 ```
 
