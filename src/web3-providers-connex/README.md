@@ -1,0 +1,1 @@
+This is an embedded fork from https://github.com/vechain/web3-providers-connex modified with tweaks. Pending a pull request once fully tested.

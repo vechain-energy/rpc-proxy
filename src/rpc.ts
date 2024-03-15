@@ -4,7 +4,7 @@ import { Command, Option } from "commander"
 import figlet from "figlet"
 import chalk from 'chalk'
 import { Driver, SimpleNet } from '@vechain/connex-driver'
-import { ProviderWeb3 } from '@vechain/web3-providers-connex'
+import { ProviderWeb3 } from './web3-providers-connex'
 import { Framework } from '@vechain/connex-framework'
 import express from 'express'
 import cors from 'cors'
@@ -20,6 +20,7 @@ program
     .description("vechain rpc proxy")
     .addOption(new Option('-n, --node <url>', 'Node URL of the blockchain').env('NODE_URL').default('https://node-mainnet.vechain.energy'))
     .addOption(new Option('-p, --port <port>', 'Port to listen on').env('PORT').default('8545'))
+    .addOption(new Option('-v, --verbose', 'Enables more detailed logging'))
     .parse(process.argv)
 
 const options = program.opts()
@@ -85,11 +86,17 @@ async function startProxy() {
                     .filter((tx: any) => tx !== null)
             }
 
-            // console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result)))
+            if (options.verbose) {
+                console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result)))
+            }
             res.json({ jsonrpc: "2.0", id: req.body.id, result })
         }
         catch (e: any) {
             if ('data' in e) {
+
+                if (options.verbose) {
+                    console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(e.data)))
+                }
                 res.json({ jsonrpc: "2.0", id: req.body.id, result: e.data })
             }
             else {
