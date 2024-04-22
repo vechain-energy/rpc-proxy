@@ -54,6 +54,21 @@ $ yarn daemon:down
 └────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
 ```
 
+**Run as docker**
+
+Build yourself:
+
+```shell
+docker build . -t vet-rpc
+docker run -p 8545:8545 -t vet-rpc --help
+```
+
+From docker hub:
+
+```shell
+docker run -p 8454:8545 -t ifavo/vet-rpc --help
+```
+
 ## Test
 
 ```shell
