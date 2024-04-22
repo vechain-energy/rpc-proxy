@@ -7,14 +7,15 @@ import express from 'express'
 import cors from 'cors'
 import { HttpClient, ThorClient } from '@vechain/sdk-network';
 import { VechainProvider } from '@vechain/sdk-provider';
+const version = require('../package.json').version;
 BigInt.prototype.toJSON = function () { return this.toString(); }
 
-console.log(chalk.keyword('orange')(figlet.textSync("rpc")))
+console.log(chalk.keyword('orange')(figlet.textSync(`rpc ${version}`)))
 console.log("")
 
 const program = new Command()
 program
-    .version("1.0.0")
+    .version(version)
     .description("vechain rpc proxy")
     .addOption(new Option('-n, --node <url>', 'Node URL of the blockchain').env('NODE_URL').default('https://node-mainnet.vechain.energy'))
     .addOption(new Option('-p, --port <port>', 'Port to listen on').env('PORT').default('8545'))
