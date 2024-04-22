@@ -67,7 +67,7 @@ async function startProxy() {
             res.json({ jsonrpc: "2.0", id: req.body.id, result })
         }
         catch (e: any) {
-            if ('data' in e) {
+            if ('data' in e && e.data !== undefined) {
 
                 if (options.verbose) {
                     console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(e.data)))
