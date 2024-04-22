@@ -82,8 +82,4 @@ $ curl -XPOST "http://localhost:8545" -H "content-type: application/json" -d '
 
 The following issues are known in the connector and need to be addressed in either the proxy or the connex connector:
 
-- eth_call does not handle blockHash correctly
-- eth_chainId can issue overflows on client side if returned in full
-- eth_getBlockByNumber and eth_getBlockByNumber do not return transaction details, when request
-- eth_getTransactionByHash throws in transaction formatter in certain situations (https://vechainstats.com/transaction/0x16c615d6f56149360460e9544995ac79f979e84a4fe35526cf8f06c7c6e3e945/)
-- eth_call throws on reverts instead of returning data
+- `eth_estimateGas` requires a second argument

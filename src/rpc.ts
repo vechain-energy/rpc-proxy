@@ -55,8 +55,8 @@ async function startProxy() {
             let { method, params } = req.body
             console.log(chalk.grey('->'), method, chalk.grey(JSON.stringify(params)))
 
-            if (method === 'eth_call' && params.length === 2 && params[1]?.blockHash) {
-                params[1] = params[1].blockHash
+            if (method === 'eth_estimateGas' && params.length === 1) {
+                params[1] = 'latest'
             }
 
             let result = await provider.request({ method, params }) as any
