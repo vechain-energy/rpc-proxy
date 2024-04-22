@@ -434,8 +434,8 @@ __metadata:
     "@types/figlet": ^1.5.8
     "@types/mocha": ^10.0.1
     "@types/node": ^20.11.24
-    "@vechain/sdk-network": ^1.0.0-beta.1
-    "@vechain/sdk-provider": ^1.0.0-beta.1
+    "@vechain/sdk-network": ^1.0.0-beta.3
+    "@vechain/sdk-provider": ^1.0.0-beta.3
     chalk: 4
     commander: 11
     cors: ^2.8.5
@@ -470,66 +470,66 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vechain/sdk-core@npm:1.0.0-beta.1":
-  version: 1.0.0-beta.1
-  resolution: "@vechain/sdk-core@npm:1.0.0-beta.1"
+"@vechain/sdk-core@npm:1.0.0-beta.3":
+  version: 1.0.0-beta.3
+  resolution: "@vechain/sdk-core@npm:1.0.0-beta.3"
   dependencies:
     "@ethereumjs/rlp": ^5.0.2
     "@types/elliptic": ^6.4.18
-    "@vechain/sdk-errors": 1.0.0-beta.1
+    "@vechain/sdk-errors": 1.0.0-beta.3
     blakejs: ^1.2.1
     elliptic: ^6.5.5
     ethers: 6.11.1
-  checksum: 1eb09d68761a27567277e12a3aed6e1d5f0d1c9616e2d4e6ea2dcb62f5ebe22f530fb3359bf67195a01adf3f3c3751bbfc8f569eaefc68ea5cf87bf3c9d35cc1
+  checksum: 21a3bef600629589248424503d86e6304600ca4f0262d6733ea782bc4bb4c13bd45418ebceb74167bb4068e45d72442eff9b7d4b2f817a319fa453a9e7e52b95
   languageName: node
   linkType: hard
 
-"@vechain/sdk-errors@npm:1.0.0-beta.1":
-  version: 1.0.0-beta.1
-  resolution: "@vechain/sdk-errors@npm:1.0.0-beta.1"
-  checksum: 4057b04d73d7ae1c468718a72467d64bf7db052e5de72f8c49213d52678aef2703d4cd424010a120cda80d1a8459171d0e6ab2b7f64e736bda7e9e559a990eb0
+"@vechain/sdk-errors@npm:1.0.0-beta.3":
+  version: 1.0.0-beta.3
+  resolution: "@vechain/sdk-errors@npm:1.0.0-beta.3"
+  checksum: 10bb3836945651977881c4f83ceb1cb242ecb118689359b5da421965fd50f1fee3c8b3c5288ef0f46f90694c68850701e62ae6a9d2b791680305bf4eb2ec171c
   languageName: node
   linkType: hard
 
-"@vechain/sdk-logging@npm:1.0.0-beta.1":
-  version: 1.0.0-beta.1
-  resolution: "@vechain/sdk-logging@npm:1.0.0-beta.1"
+"@vechain/sdk-logging@npm:1.0.0-beta.3":
+  version: 1.0.0-beta.3
+  resolution: "@vechain/sdk-logging@npm:1.0.0-beta.3"
   dependencies:
-    "@vechain/sdk-errors": 1.0.0-beta.1
-  checksum: 2a208744ffa16483d4e72cd6adf05773ee1346160345ae025b5986f6d705d46a870ffb86c510a344b9875b54f78b1676313a252591bdcbe93cc96ad1f9b0c2f9
+    "@vechain/sdk-errors": 1.0.0-beta.3
+  checksum: 0cdf1b5731b2a9c9cf434d2ec62471273b329c846ddf2b45ca5226210b3ec0fec79097b591e14771821b61b9d81d026eb1dc0252a3c816a1032a5c76e1dbb1be
   languageName: node
   linkType: hard
 
-"@vechain/sdk-network@npm:1.0.0-beta.1, @vechain/sdk-network@npm:^1.0.0-beta.1":
-  version: 1.0.0-beta.1
-  resolution: "@vechain/sdk-network@npm:1.0.0-beta.1"
+"@vechain/sdk-network@npm:1.0.0-beta.3, @vechain/sdk-network@npm:^1.0.0-beta.3":
+  version: 1.0.0-beta.3
+  resolution: "@vechain/sdk-network@npm:1.0.0-beta.3"
   dependencies:
     "@types/ws": ^8.5.10
-    "@vechain/sdk-core": 1.0.0-beta.1
-    "@vechain/sdk-errors": 1.0.0-beta.1
+    "@vechain/sdk-core": 1.0.0-beta.3
+    "@vechain/sdk-errors": 1.0.0-beta.3
     axios: ^1.6.7
-  checksum: efb4de48b4c3b1b4715f2700139e2cdc6e34aad16bab09389570ecec760f5b038c88daead98c8292cffdd02a6b8dce1a73e03aed6753cae93136e53b9f58d874
+  checksum: d1b40845e07c0acfa0e4435eeb60278f84b6260008aa2e77460b2366a1a5a99e1e55910330c841ccca04307397eb8b03e5c8a353d54b55b442f42118a180108c
   languageName: node
   linkType: hard
 
-"@vechain/sdk-provider@npm:^1.0.0-beta.1":
-  version: 1.0.0-beta.1
-  resolution: "@vechain/sdk-provider@npm:1.0.0-beta.1"
+"@vechain/sdk-provider@npm:^1.0.0-beta.3":
+  version: 1.0.0-beta.3
+  resolution: "@vechain/sdk-provider@npm:1.0.0-beta.3"
   dependencies:
-    "@vechain/sdk-core": 1.0.0-beta.1
-    "@vechain/sdk-logging": 1.0.0-beta.1
-    "@vechain/sdk-network": 1.0.0-beta.1
-    "@vechain/sdk-wallet": 1.0.0-beta.1
-  checksum: 2bd0553a856f148b3994b43559c0d2087a140f9c0afe780caf87b1dac51f5b7379c4dbcd4734fd3db30313c3c03aa34fc17354e8e79769255cb3476c43d59767
+    "@vechain/sdk-core": 1.0.0-beta.3
+    "@vechain/sdk-logging": 1.0.0-beta.3
+    "@vechain/sdk-network": 1.0.0-beta.3
+    "@vechain/sdk-wallet": 1.0.0-beta.3
+  checksum: 19b26cc4265d075d62953638b63f8ae13d752f563842ceae3e9b6c3319d59032704992a6a6e2a1b4cc68bc658d6b42bd97c955b7958e85047ae7adb7eaf36f14
   languageName: node
   linkType: hard
 
-"@vechain/sdk-wallet@npm:1.0.0-beta.1":
-  version: 1.0.0-beta.1
-  resolution: "@vechain/sdk-wallet@npm:1.0.0-beta.1"
+"@vechain/sdk-wallet@npm:1.0.0-beta.3":
+  version: 1.0.0-beta.3
+  resolution: "@vechain/sdk-wallet@npm:1.0.0-beta.3"
   dependencies:
-    "@vechain/sdk-network": 1.0.0-beta.1
-  checksum: 0610fba690881a62dd43305b9a9287227c3dd133367001aacdaeaa601f88e46afed4a7f001590a36130c3a6469ee0c5d845ef27a9e09e35d38a1b8936d100f79
+    "@vechain/sdk-network": 1.0.0-beta.3
+  checksum: 64b210aaa4df9e9f958df1e3ed13612921e0b47560f991a0e6df34ff6330ed7d11ce36eb294a70ac72926c5862d8c074dec278a123d238e8b5e98553fe3dee3f
   languageName: node
   linkType: hard
 
