@@ -3,13 +3,11 @@
 import { Command, Option } from "commander"
 import figlet from "figlet"
 import chalk from 'chalk'
-import { Driver, SimpleNet } from '@vechain/connex-driver'
-import { ProviderWeb3 } from './web3-providers-connex'
-import { Framework } from '@vechain/connex-framework'
 import express from 'express'
 import cors from 'cors'
+import { HttpClient, ThorClient } from '@vechain/sdk-network';
+import { VechainProvider } from '@vechain/sdk-provider';
 BigInt.prototype.toJSON = function () { return this.toString(); }
-
 
 console.log(chalk.keyword('orange')(figlet.textSync("rpc")))
 console.log("")
@@ -37,13 +35,8 @@ async function startProxy() {
     console.log("Port:", chalk.grey(options.port))
     console.log("")
 
-    // vechain connex
-    const net = new SimpleNet(options.node)
-    const driver = await Driver.connect(net)
-    const connex = new Framework(driver)
-
-    // web3 provider relying on connex
-    const provider = new ProviderWeb3({ connex, net: net })
+    const thorClient = new ThorClient(new HttpClient(options.node))
+    const provider = new VechainProvider(thorClient);
 
     // setup webserver to listen for request
     const app = express()
@@ -62,29 +55,11 @@ async function startProxy() {
             let { method, params } = req.body
             console.log(chalk.grey('->'), method, chalk.grey(JSON.stringify(params)))
 
-            if (method === 'eth_call' && params.length === 2 && params[1].blockHash) {
+            if (method === 'eth_call' && params.length === 2 && params[1]?.blockHash) {
                 params[1] = params[1].blockHash
             }
 
-            let result = await provider.request({ method, params })
-            if (method === 'eth_chainId') {
-                result = `0x${BigInt(result).toString(16).slice(-8)}`
-            }
-
-            // expand transactions if requested
-            else if (['eth_getBlockByNumber', 'eth_getBlockByHash'].includes(method) && params[1] === true) {
-                // temporarily remove failing formatter: <! Error: Cannot read properties of undefined (reading 'to')
-                // curl -XPOST "http://localhost:8545" -H "content-type: application/json" -d '{ "jsonrpc": "2.0", "method": "eth_getBlockByHash", "params": ["0x00b3e1bd924f9d5243792b4361f1c509473bdfdd5418be8a738a31ffa3bedada",true], "id": "1" }'
-                result.transactions = (await Promise.all(result.transactions.map(async (txId: string) => {
-                    try {
-                        return await provider.request({ method: 'eth_getTransactionByHash', params: [txId] })
-                    }
-                    catch {
-                        return null
-                    }
-                })))
-                    .filter((tx: any) => tx !== null)
-            }
+            let result = await provider.request({ method, params }) as any
 
             if (options.verbose) {
                 console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result)))
@@ -92,7 +67,7 @@ async function startProxy() {
             res.json({ jsonrpc: "2.0", id: req.body.id, result })
         }
         catch (e: any) {
-            if ('data' in e) {
+            if ('data' in e && e.data !== undefined) {
 
                 if (options.verbose) {
                     console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(e.data)))
