@@ -5,8 +5,7 @@ import figlet from "figlet"
 import chalk from 'chalk'
 import express from 'express'
 import cors from 'cors'
-import { HttpClient, ThorClient } from '@vechain/sdk-network';
-import { VechainProvider } from '@vechain/sdk-provider';
+import { ThorClient, VeChainProvider } from '@vechain/sdk-network';
 const version = require('../package.json').version;
 BigInt.prototype.toJSON = function () { return this.toString(); }
 
@@ -36,8 +35,8 @@ async function startProxy() {
     console.log("Port:", chalk.grey(options.port))
     console.log("")
 
-    const thorClient = new ThorClient(new HttpClient(options.node))
-    const provider = new VechainProvider(thorClient);
+    const thorClient = ThorClient.fromUrl(options.node)
+    const provider = new VeChainProvider(thorClient);
 
     // setup webserver to listen for request
     const app = express()
@@ -55,11 +54,6 @@ async function startProxy() {
         try {
             let { method, params } = req.body
             console.log(chalk.grey('->'), method, chalk.grey(JSON.stringify(params)))
-
-            if (method === 'eth_estimateGas' && params.length === 1) {
-                params[1] = 'latest'
-            }
-
             let result = await provider.request({ method, params }) as any
 
             if (options.verbose) {

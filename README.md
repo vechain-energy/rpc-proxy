@@ -92,9 +92,3 @@ $ curl -XPOST "http://localhost:8545" -H "content-type: application/json" -d '
 '
 {"jsonrpc":2,"result":"14018334920824264832118464179726739019961432051877733167310318607178","id":"1"}
 ```
-
-## Known Issues
-
-The following issues are known in the connector and need to be addressed in either the proxy or the connex connector:
-
-- `eth_estimateGas` requires a second argument
