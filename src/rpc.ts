@@ -54,20 +54,59 @@ async function startProxy() {
         try {
             let { method, params } = req.body
             console.log(chalk.grey('->'), method, chalk.grey(JSON.stringify(params)))
-            let result = await provider.request({ method, params }) as any
+
+            if (method === 'eth_getBlockByNumber' && typeof (params[0]) === 'number') {
+                params[0] = `0x${Number(params[0]).toString(16)}`
+            }
+
+            let result
+            // https://github.com/vechain/vechain-sdk-js/issues/1015
+            if (method === 'eth_getLogs' && Array.isArray(params[0].topics[0])) {
+                const results = await Promise.all(params[0].topics[0].map(topicHash =>
+                    provider.request({
+                        method,
+                        params: [
+                            {
+                                ...params[0],
+                                topics: [
+                                    topicHash,
+                                    ...params[0].topics.slice(1)
+                                ]
+                            }
+                        ]
+                    }) as any))
+                result = results.flat();
+            }
+            else {
+                result = await provider.request({ method, params }) as any
+            }
+
+            // https://github.com/vechain/vechain-sdk-js/issues/1014
+            if (method === 'eth_getBlockByNumber' && params[1] === false) {
+                result.transactions = result.transactions.map((tx: any) => typeof (tx) !== 'string' ? tx.hash : tx)
+            }
 
             if (options.verbose) {
                 console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result)))
             }
+
             res.json({ jsonrpc: "2.0", id: req.body.id, result })
         }
         catch (e: any) {
-            if ('data' in e && e.data !== undefined) {
+            if ('data' in e && typeof (e.data) === 'string') {
 
                 if (options.verbose) {
-                    console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(e.data)))
+                    console.log(chalk.grey('<-'), chalk.grey(e.data))
                 }
                 res.json({ jsonrpc: "2.0", id: req.body.id, result: e.data })
+            }
+            else if ('data' in e && typeof (e.data) !== 'string' && e.data !== undefined) {
+                let { method } = req.body
+                const result = `the method ${method} does not exist/is not available`
+                if (options.verbose) {
+                    console.log(chalk.grey('<-'), chalk.grey(result))
+                }
+                res.json({ jsonrpc: "2.0", id: req.body.id, result })
             }
             else {
                 console.error(chalk.red('<!'), chalk.red(e))

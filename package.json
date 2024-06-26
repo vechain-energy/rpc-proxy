@@ -1,6 +1,6 @@
 {
   "name": "@vechain.energy/vet-rpc",
-  "version": "1.4.0",
+  "version": "1.4.4",
   "packageManager": "yarn@3.6.1",
   "bin": "dist/rpc.js",
   "main": "dist/rpc.js",
@@ -13,7 +13,7 @@
     "url": "https://github.com/vechain-energy/rpc-proxy/issues"
   },
   "dependencies": {
-    "@vechain/sdk-network": "^1.0.0-beta.16",
+    "@vechain/sdk-network": "1.0.0-beta.18",
     "chalk": "4",
     "commander": "11",
     "cors": "^2.8.5",
