@@ -60,6 +60,11 @@ async function startProxy() {
             }
 
             let result
+            // https://github.com/vechain/vechain-sdk-js/issues/1016
+            if (method === 'eth_getLogs' && params[0].address === null) {
+                delete params[0].address
+            }
+
             // https://github.com/vechain/vechain-sdk-js/issues/1015
             if (method === 'eth_getLogs' && Array.isArray(params[0].topics[0])) {
                 const results = await Promise.all(params[0].topics[0].map(topicHash =>
