@@ -82,7 +82,7 @@ async function startProxy() {
             }
 
             // https://github.com/vechain/vechain-sdk-js/issues/1014
-            if (method === 'eth_getBlockByNumber' && params[1] === false) {
+            if (['eth_getBlockByNumber', 'eth_getBlockByHash'].includes(method) && params[1] === false) {
                 result.transactions = result.transactions.map((tx: any) => typeof (tx) !== 'string' ? tx.hash : tx)
             }
 
