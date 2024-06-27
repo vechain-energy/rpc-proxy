@@ -60,13 +60,16 @@ async function startProxy() {
             }
 
             let result
+
             // https://github.com/vechain/vechain-sdk-js/issues/1016
             if (method === 'eth_getLogs' && params[0].address === null) {
+                console.log(chalk.bgRed.grey('-> Patch #1016'))
                 delete params[0].address
             }
 
             // https://github.com/vechain/vechain-sdk-js/issues/1015
             if (method === 'eth_getLogs' && Array.isArray(params[0].topics[0])) {
+                console.log(chalk.bgRed.grey('-> Patch #1015'))
                 const results = await Promise.all(params[0].topics[0].map(topicHash =>
                     provider.request({
                         method,
@@ -88,7 +91,39 @@ async function startProxy() {
 
             // https://github.com/vechain/vechain-sdk-js/issues/1014
             if (['eth_getBlockByNumber', 'eth_getBlockByHash'].includes(method) && params[1] === false) {
+                console.log(chalk.bgRed.grey('-> Patch #1014'))
                 result.transactions = result.transactions.map((tx: any) => typeof (tx) !== 'string' ? tx.hash : tx)
+            }
+
+            // Fix missing logIndex, huge performance hit but neccessary for compatibility
+            if (method === 'eth_getLogs') {
+                console.log(chalk.bgRed.grey('-> Patch: logIndex and transactionIndex injection'))
+                // will use transactionReceipts instead of accessing getBlockExpanded, to rely on existing rpc convertion
+                // @TODO: decide about approach based on stability (existing rpc functions) or speed  (direct node access)
+                const uniqueTransactionHashes = [...new Set<string>(result.map((log: any) => log.transactionHash))];
+                for (const transactionHash of uniqueTransactionHashes) {
+                    const transaction = await provider.request({ method: 'eth_getTransactionReceipt', params: [transactionHash] }) as any
+                    for (const log of transaction.logs) {
+                        const index = result.findIndex((resultLog: any) =>
+                            resultLog.logIndex === '0x0' &&
+                            resultLog.address === log.address &&
+                            resultLog.blockHash === log.blockHash &&
+                            resultLog.blockNumber === log.blockNumber &&
+                            resultLog.removed === log.removed &&
+                            JSON.stringify(resultLog.topics) === JSON.stringify(log.topics) &&
+                            resultLog.transactionHash === log.transactionHash &&
+                            resultLog.transactionIndex === '0x0' &&
+                            !resultLog._patched
+                        );
+
+                        if (index === -1) { continue }
+                        result[index].logIndex = log.logIndex ?? '0x0'
+                        result[index].transactionIndex = log.transactionIndex ?? '0x0'
+                        result[index]._patched = true
+                    }
+                }
+
+                result = result.map(({ _patched, ...log }: any) => log)
             }
 
             if (options.verbose) {
@@ -99,7 +134,6 @@ async function startProxy() {
         }
         catch (e: any) {
             if ('data' in e && typeof (e.data) === 'string') {
-
                 if (options.verbose) {
                     console.log(chalk.grey('<-'), chalk.grey(e.data))
                 }

@@ -1,0 +1,15 @@
+--- node_modules/@vechain/sdk-network/dist/index.js    2024-06-27 08:14:18
++++ node_modules/@vechain/sdk-network/dist/index-patched.js    2024-06-27 08:13:43
+@@ -31006,11 +31006,7 @@
+         to: filterOptions.toBlock !== void 0 ? parseInt(filterOptions.toBlock, 16) : latestBlock.number
+       },
+       criteriaSet,
+-      order: "asc",
+-      options: {
+-        offset: 0,
+-        limit: MAX_LIMIT
+-      }
++      order: "asc"
+     });
+     return formatToLogsRPC(logs);
+   } catch (e) {
