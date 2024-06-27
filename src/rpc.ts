@@ -126,31 +126,20 @@ async function startProxy() {
                 result = result.map(({ _patched, ...log }: any) => log)
             }
 
-            if (options.verbose) {
-                console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result)))
-            }
-
+            if (options.verbose) { console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result))) }
             res.json({ jsonrpc: "2.0", id: req.body.id, result })
         }
         catch (e: any) {
+            let error = e
             if ('data' in e && typeof (e.data) === 'string') {
-                if (options.verbose) {
-                    console.log(chalk.grey('<-'), chalk.grey(e.data))
-                }
-                res.json({ jsonrpc: "2.0", id: req.body.id, result: e.data })
+                error = e.data
             }
             else if ('data' in e && typeof (e.data) !== 'string' && e.data !== undefined) {
-                let { method } = req.body
-                const result = `the method ${method} does not exist/is not available`
-                if (options.verbose) {
-                    console.log(chalk.grey('<-'), chalk.grey(result))
-                }
-                res.json({ jsonrpc: "2.0", id: req.body.id, result })
+                error = `the method ${req.body.method ?? 'unknown'} does not exist/is not available`
             }
-            else {
-                console.error(chalk.red('<!'), chalk.red(e))
-                res.json({ jsonrpc: "2.0", id: req.body.id, error: e })
-            }
+
+            if (options.verbose) { console.log(chalk.grey('<-'), chalk.grey(e.data)) }
+            res.json({ jsonrpc: "2.0", id: req.body.id, error })
         }
     }
 }
