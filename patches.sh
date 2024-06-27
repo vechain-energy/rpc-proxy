@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-patch < patches/getLogs-disable-limits.diff
+patch -p0 < patches/getLogs-disable-limits.diff
