@@ -5,7 +5,8 @@ import figlet from "figlet"
 import chalk from 'chalk'
 import express from 'express'
 import cors from 'cors'
-import { ThorClient, VeChainProvider } from '@vechain/sdk-network';
+import { type ExpandedBlockDetail, ThorClient, VeChainProvider } from '@vechain/sdk-network';
+
 const version = require('../package.json').version;
 BigInt.prototype.toJSON = function () { return this.toString(); }
 
@@ -40,7 +41,6 @@ async function startProxy() {
 
     // setup webserver to listen for request
     const app = express()
-
     app.use(cors())
     app.use(express.json())
 
@@ -63,13 +63,13 @@ async function startProxy() {
 
             // https://github.com/vechain/vechain-sdk-js/issues/1016
             if (method === 'eth_getLogs' && params[0].address === null) {
-                console.log(chalk.bgRed.grey('-> Patch #1016'))
+                if (options.verbose) { console.log(chalk.bgRed.grey('-> Patch #1016')) }
                 delete params[0].address
             }
 
             // https://github.com/vechain/vechain-sdk-js/issues/1015
             if (method === 'eth_getLogs' && Array.isArray(params[0].topics[0])) {
-                console.log(chalk.bgRed.grey('-> Patch #1015'))
+                if (options.verbose) { console.log(chalk.bgRed.grey('-> Patch #1015')) }
                 const results = await Promise.all(params[0].topics[0].map(topicHash =>
                     provider.request({
                         method,
@@ -91,40 +91,64 @@ async function startProxy() {
 
             // https://github.com/vechain/vechain-sdk-js/issues/1014
             if (['eth_getBlockByNumber', 'eth_getBlockByHash'].includes(method) && params[1] === false) {
-                console.log(chalk.bgRed.grey('-> Patch #1014'))
+                if (options.verbose) { console.log(chalk.bgRed.grey('-> Patch #1014')) }
                 result.transactions = result.transactions.map((tx: any) => typeof (tx) !== 'string' ? tx.hash : tx)
             }
 
             // Fix missing logIndex, huge performance hit but neccessary for compatibility
             if (method === 'eth_getLogs') {
-                console.log(chalk.bgRed.grey('-> Patch: logIndex and transactionIndex injection'))
+                if (options.verbose) { console.log(chalk.bgRed.grey('-> Patch: logIndex and transactionIndex injection')) }
                 // will use transactionReceipts instead of accessing getBlockExpanded, to rely on existing rpc convertion
                 // @TODO: decide about approach based on stability (existing rpc functions) or speed  (direct node access)
-                const uniqueTransactionHashes = [...new Set<string>(result.map((log: any) => log.transactionHash))];
-                for (const transactionHash of uniqueTransactionHashes) {
-                    const transaction = await provider.request({ method: 'eth_getTransactionReceipt', params: [transactionHash] }) as any
-                    for (const log of transaction.logs) {
-                        const index = result.findIndex((resultLog: any) =>
-                            resultLog.logIndex === '0x0' &&
-                            resultLog.address === log.address &&
-                            resultLog.blockHash === log.blockHash &&
-                            resultLog.blockNumber === log.blockNumber &&
-                            resultLog.removed === log.removed &&
-                            JSON.stringify(resultLog.topics) === JSON.stringify(log.topics) &&
-                            resultLog.transactionHash === log.transactionHash &&
-                            resultLog.transactionIndex === '0x0' &&
-                            !resultLog._patched
-                        );
+                const blockTransactionMap: Record<string, string[]> = {};
+                for (const log of result) {
+                    const { blockHash, transactionHash } = log;
+                    if (!blockTransactionMap[blockHash]) {
+                        blockTransactionMap[blockHash] = [];
+                    }
+                    blockTransactionMap[blockHash].push(transactionHash);
+                }
 
-                        if (index === -1) { continue }
-                        result[index].logIndex = log.logIndex ?? '0x0'
-                        result[index].transactionIndex = log.transactionIndex ?? '0x0'
-                        result[index]._patched = true
+                const uniqueBlockHashes = Object.keys(blockTransactionMap);
+                for (const blockIndex in uniqueBlockHashes) {
+                    const blockHash = uniqueBlockHashes[blockIndex]
+                    if (options.verbose) { console.log(chalk.bgRed.grey(`-> Patch: logIndex and transactionIndex injection (Block ${Number(blockIndex) + 1}/${uniqueBlockHashes.length})`)) }
+                    const block = await thorClient.blocks.getBlockExpanded(blockHash)
+                    if (!block) { throw new Error(`Unable to load block details for "${blockHash}`) }
+
+                    for (const transactionHash of blockTransactionMap[blockHash]) {
+                        const transactionIndex = `0x${Number(getTransactionIndexIntoBlock(block, transactionHash)).toString(16)}`
+                        const logIndexOffset = getNumberOfLogsAheadOfTransactionIntoBlockExpanded(block, transactionHash);
+                        const transaction = block.transactions.find(tx => tx.id === transactionHash)
+                        if (!transaction) { throw new Error(`Unable to load transaction details for "${transactionHash}`) }
+
+                        let logIndex = logIndexOffset
+                        for (const clauseOutput of transaction.outputs) {
+                            for (const event of clauseOutput.events) {
+                                const index = result.findIndex((resultLog: any) =>
+                                    resultLog.logIndex === '0x0' &&
+                                    resultLog.transactionIndex === '0x0' &&
+                                    resultLog.address === event.address &&
+                                    JSON.stringify(resultLog.topics) === JSON.stringify(event.topics) &&
+                                    resultLog.data === event.data &&
+                                    !resultLog._patched
+                                )
+                                if (index !== -1) {
+                                    result[index].logIndex = `0x${Number(logIndex).toString(16)}`
+                                    result[index].transactionIndex = transactionIndex
+                                    result[index]._patched = true
+                                }
+                                logIndex += 1
+                            }
+                        }
                     }
                 }
 
                 result = result
+                    // remove unwanted data from result
                     .map(({ _patched, ...log }: any) => log)
+
+                    // ensure logical sorting by txIndex + logIndex
                     .sort((a: any, b: any) => {
                         const txIndexA = parseInt(a.transactionIndex, 16);
                         const txIndexB = parseInt(b.transactionIndex, 16);
@@ -156,3 +180,37 @@ async function startProxy() {
 }
 
 startProxy().catch(console.error)
+
+
+
+const getTransactionIndexIntoBlock = (blockExpanded: ExpandedBlockDetail, hash: string): number => {
+    const idx = blockExpanded.transactions.findIndex(
+        (tx) => tx.id === hash
+    )
+
+    if (idx === -1) { throw new Error(`Could not locate transactionIndex for "${hash}"`) }
+    return idx;
+};
+
+const getNumberOfLogsAheadOfTransactionIntoBlockExpanded = (
+    blockExpanded: ExpandedBlockDetail,
+    transactionId: string
+): number => {
+    // Get transaction index into the block
+    const transactionIndex = getTransactionIndexIntoBlock(blockExpanded, transactionId);
+
+    // Count the number of logs in the txs whose number is lower than txId
+    let logIndex: number = 0;
+
+    // Iterate over the transactions into the block bounded by the transaction index
+    for (let i = 0; i < transactionIndex; i++) {
+        const currentTransaction = blockExpanded.transactions[i];
+
+        // Iterate over the outputs of the current transaction
+        for (const output of currentTransaction.outputs) {
+            logIndex += output.events.length;
+        }
+    }
+
+    return logIndex;
+};
