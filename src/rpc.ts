@@ -83,7 +83,7 @@ async function startProxy() {
                             }
                         ]
                     }) as any))
-                result = results.flat();
+                result = results.flat()
             }
             else {
                 result = await provider.request({ method, params }) as any
@@ -123,7 +123,18 @@ async function startProxy() {
                     }
                 }
 
-                result = result.map(({ _patched, ...log }: any) => log)
+                result = result
+                    .map(({ _patched, ...log }: any) => log)
+                    .sort((a: any, b: any) => {
+                        const txIndexA = parseInt(a.transactionIndex, 16);
+                        const txIndexB = parseInt(b.transactionIndex, 16);
+                        if (txIndexA !== txIndexB) {
+                            return txIndexA - txIndexB;
+                        }
+                        const logIndexA = parseInt(a.logIndex, 16);
+                        const logIndexB = parseInt(b.logIndex, 16);
+                        return logIndexA - logIndexB;
+                    });
             }
 
             if (options.verbose) { console.log(chalk.grey('<-'), chalk.grey(JSON.stringify(result))) }
