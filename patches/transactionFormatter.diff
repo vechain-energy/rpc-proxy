@@ -1,0 +1,46 @@
+--- node_modules/@vechain/sdk-network/dist/index.js	2024-06-28 12:22:21
++++ node_modules/@vechain/sdk-network/dist/index-patched.js	2024-06-28 12:22:15
+@@ -30474,9 +30474,9 @@
+      *VeChain supports multiple clauses in one transaction, thus the actual data should be obtained by looking into each clause.
+      * Due to the single clause limitation of Ethereum, we assume the first clause is the clause from which we obtain the data.
+      */
+-    input: tx.clauses[0].data,
+-    to: tx.clauses[0].to,
+-    value: import_sdk_core25.Quantity.of(tx.clauses[0].value),
++    input: tx.clauses[0]?.data ?? '0x',
++    to: tx.clauses[0]?.to,
++    value: import_sdk_core25.Quantity.of(tx.clauses[0]?.value ?? '0x0'),
+     // Unsupported fields
+     gasPrice: "0x0",
+     type: "0x0",
+@@ -30517,9 +30517,7 @@
+     transactionHash,
+     chainId
+   );
+-  const n2 = receipt.outputs.length > 0 ? receipt.outputs[0].events.length : 0;
+-  const filledLogIndexes = new Array(n2).fill(logIndexOffset).map((_, i) => i + logIndexOffset);
+-  const logIndexes = filledLogIndexes.map((i) => import_sdk_core25.Quantity.of(i));
++  let logIndex = logIndexOffset;
+   const logs = [];
+   receipt.outputs.forEach((output3) => {
+     output3.events.forEach((event, index) => {
+@@ -30532,8 +30530,9 @@
+         data: event.data,
+         removed: false,
+         transactionIndex: import_sdk_core25.Quantity.of(transactionIndex),
+-        logIndex: logIndexes[index]
++        logIndex: import_sdk_core25.Quantity.of(logIndex)
+       });
++      logIndex++
+     });
+   });
+   return {
+@@ -30544,7 +30543,7 @@
+     gasUsed: import_sdk_core25.Quantity.of(receipt.gasUsed),
+     logs,
+     status: receipt.reverted ? "0x0" : "0x1",
+-    to: transaction.clauses[0].to,
++    to: transaction.clauses[0]?.to,
+     transactionHash: receipt.meta.txID,
+     transactionIndex: import_sdk_core25.Quantity.of(transactionIndex),
+     // Incompatible fields

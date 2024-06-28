@@ -128,6 +128,8 @@ async function startProxy() {
                                 const index = result.findIndex((resultLog: any) =>
                                     resultLog.logIndex === '0x0' &&
                                     resultLog.transactionIndex === '0x0' &&
+                                    resultLog.blockHash === blockHash &&
+                                    resultLog.transactionHash === transactionHash &&
                                     resultLog.address === event.address &&
                                     JSON.stringify(resultLog.topics) === JSON.stringify(event.topics) &&
                                     resultLog.data === event.data &&
@@ -173,7 +175,7 @@ async function startProxy() {
                 error = `the method ${req.body.method ?? 'unknown'} does not exist/is not available`
             }
 
-            if (options.verbose) { console.log(chalk.grey('<-'), chalk.grey(e.data)) }
+            if (options.verbose) { console.log(chalk.red('<- error:'), chalk.grey(e.data)) }
             res.json({ jsonrpc: "2.0", id: req.body.id, error })
         }
     }
@@ -199,8 +201,7 @@ const getNumberOfLogsAheadOfTransactionIntoBlockExpanded = (
     // Get transaction index into the block
     const transactionIndex = getTransactionIndexIntoBlock(blockExpanded, transactionId);
 
-    // Count the number of logs in the txs whose number is lower than txId
-    let logIndex: number = 0;
+    let logIndex = 0;
 
     // Iterate over the transactions into the block bounded by the transaction index
     for (let i = 0; i < transactionIndex; i++) {
