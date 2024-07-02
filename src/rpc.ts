@@ -6,6 +6,7 @@ import chalk from 'chalk'
 import express from 'express'
 import cors from 'cors'
 import { type ExpandedBlockDetail, ThorClient, VeChainProvider } from '@vechain/sdk-network';
+import LRUCache from 'mnemonist/lru-cache';
 
 const version = require('../package.json').version;
 BigInt.prototype.toJSON = function () { return this.toString(); }
@@ -19,7 +20,9 @@ program
     .description("vechain rpc proxy")
     .addOption(new Option('-n, --node <url>', 'Node URL of the blockchain').env('NODE_URL').default('https://node-mainnet.vechain.energy'))
     .addOption(new Option('-p, --port <port>', 'Port to listen on').env('PORT').default('8545'))
-    .addOption(new Option('-v, --verbose', 'Enables more detailed logging'))
+    .addOption(new Option('-v, --verbose', 'Enables more detailed logging').env('VERBOSE').default(false))
+    .addOption(new Option('--disable-cache', 'Disable caching for immutable results').env('DISABLE_CACHE'))
+    .addOption(new Option('--cache-items <number>', 'Number of maximum cacheabled items').env('CACHE_ITEMS').default(100000).conflicts('disableCache'))
     .parse(process.argv)
 
 const options = program.opts()
@@ -34,10 +37,12 @@ async function startProxy() {
     console.log("")
     console.log("Node:", chalk.grey(options.node))
     console.log("Port:", chalk.grey(options.port))
+    console.log("Cache:", chalk.grey(options.disableCache ? 'Disabled' : `${options.cacheItems} items`))
     console.log("")
 
     const thorClient = ThorClient.fromUrl(options.node)
     const provider = new VeChainProvider(thorClient);
+    const blockCache = new LRUCache<string, ExpandedBlockDetail>(Number(100000));
 
     // setup webserver to listen for request
     const app = express()
@@ -113,8 +118,14 @@ async function startProxy() {
                 for (const blockIndex in uniqueBlockHashes) {
                     const blockHash = uniqueBlockHashes[blockIndex]
                     if (options.verbose) { console.log(chalk.bgRed.grey(`-> Patch: logIndex and transactionIndex injection (Block ${Number(blockIndex) + 1}/${uniqueBlockHashes.length})`)) }
-                    const block = await thorClient.blocks.getBlockExpanded(blockHash)
+
+                    const isCached = !options.disableCache && blockCache.has(blockHash)
+                    const block = isCached
+                        ? blockCache.get(blockHash)
+                        : await thorClient.blocks.getBlockExpanded(blockHash)
+
                     if (!block) { throw new Error(`Unable to load block details for "${blockHash}`) }
+                    if (!options.disableCache && !isCached) blockCache.set(blockHash, block)
 
                     for (const transactionHash of blockTransactionMap[blockHash]) {
                         const transactionIndex = `0x${Number(getTransactionIndexIntoBlock(block, transactionHash)).toString(16)}`
@@ -182,7 +193,6 @@ async function startProxy() {
 }
 
 startProxy().catch(console.error)
-
 
 
 const getTransactionIndexIntoBlock = (blockExpanded: ExpandedBlockDetail, hash: string): number => {
