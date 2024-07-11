@@ -7,7 +7,9 @@ import express from 'express'
 import cors from 'cors'
 import { type ExpandedBlockDetail, ThorClient, VeChainProvider, HttpClient } from '@vechain/sdk-network';
 import Axios from 'axios'
-import { buildMemoryStorage, setupCache } from 'axios-cache-interceptor';
+import { setupCache, buildMemoryStorage, buildKeyGenerator } from 'axios-cache-interceptor';
+import hash from "object-hash";
+const MAX_PARALLEL_INJECTION_REQUESTS = 10
 
 const version = require('../package.json').version;
 BigInt.prototype.toJSON = function () { return this.toString(); }
@@ -51,13 +53,41 @@ async function startProxy() {
                 baseURL: options.node,
             }),
             {
-                methods: ['get'],
+                // debug: ({ id, msg }) => console.log(id, msg),
+                methods: ['get', 'post', 'options'],
                 storage: buildMemoryStorage(false, 10000, options.cacheItems),
+                ttl: 86400 * 1000,
+                generateKey: buildKeyGenerator(({ id, baseURL, url, method, params, data }) => {
+                    if (id) { return id }
+                    return hash({
+                        url: baseURL + (baseURL && url ? '/' : '') + url,
+                        params: params,
+                        method: method,
+                        data: data
+                    })
+                }),
                 cachePredicate: {
+                    responseMatch(res) {
+                        // console.log(res.id, res.request?.method, res.request?.path)
+                        try {
+                            // do not cache log requests that extend to latest blocks
+                            if (res.request.path.includes('/logs/')) {
+                                const requestBody = JSON.parse(String(res.config.data))
+                                if (requestBody?.range?.unit === 'time' || !requestBody?.range?.to) {
+                                    throw new Error('logs with latest block should not be cached')
+                                }
+                            }
+
+                            return true
+                        }
+                        catch {
+                            return false
+                        }
+                    },
                     ignoreUrls: [
-                        /\/best$/,
-                        /\/accounts\//,
-                        /\/best\?expanded=true$/
+                        /\/best/,                       // latest block, will update every new block
+                        /\/accounts(?!.*revision)/,     // accounts show latest block data, except when revision is given
+                        /\?pending/,                    // pending data can always be replaced
                     ]
                 }
             });
@@ -86,7 +116,7 @@ async function startProxy() {
                 params[0] = `0x${Number(params[0]).toString(16)}`
             }
 
-            let result
+            let result: any | any[] = []
 
             // https://github.com/vechain/vechain-sdk-js/issues/1016
             if (method === 'eth_getLogs' && params[0].address === null) {
@@ -135,45 +165,55 @@ async function startProxy() {
                     }
                     blockTransactionMap[blockHash].push(transactionHash);
                 }
-
                 const uniqueBlockHashes = Object.keys(blockTransactionMap);
-                for (const blockIndex in uniqueBlockHashes) {
-                    const blockHash = uniqueBlockHashes[blockIndex]
-                    if (options.verbose) { console.log(chalk.bgRed.grey(`-> Patch: logIndex and transactionIndex injection (Block ${Number(blockIndex) + 1}/${uniqueBlockHashes.length})`)) }
+                let activePromises: Promise<void>[] = [];
+                for (let i = 0; i < uniqueBlockHashes.length; i++) {
+                    const blockHash = uniqueBlockHashes[i];
+                    const promise = (async (blockHash, blockIndex) => {
+                        if (options.verbose) { console.log(chalk.bgRed.grey(`-> Patch: logIndex and transactionIndex injection (Block ${Number(blockIndex + 1)}/${uniqueBlockHashes.length})`)) }
 
-                    const block = await thorClient.blocks.getBlockExpanded(blockHash)
+                        const block = await thorClient.blocks.getBlockExpanded(blockHash)
+                        if (!block) { throw new Error(`Unable to load block details for "${blockHash}`) }
 
-                    if (!block) { throw new Error(`Unable to load block details for "${blockHash}`) }
+                        for (const transactionHash of blockTransactionMap[blockHash]) {
+                            const transactionIndex = `0x${Number(getTransactionIndexIntoBlock(block, transactionHash)).toString(16)}`
+                            const logIndexOffset = getNumberOfLogsAheadOfTransactionIntoBlockExpanded(block, transactionHash);
+                            const transaction = block.transactions.find(tx => tx.id === transactionHash)
+                            if (!transaction) { throw new Error(`Unable to load transaction details for "${transactionHash}`) }
 
-                    for (const transactionHash of blockTransactionMap[blockHash]) {
-                        const transactionIndex = `0x${Number(getTransactionIndexIntoBlock(block, transactionHash)).toString(16)}`
-                        const logIndexOffset = getNumberOfLogsAheadOfTransactionIntoBlockExpanded(block, transactionHash);
-                        const transaction = block.transactions.find(tx => tx.id === transactionHash)
-                        if (!transaction) { throw new Error(`Unable to load transaction details for "${transactionHash}`) }
-
-                        let logIndex = logIndexOffset
-                        for (const clauseOutput of transaction.outputs) {
-                            for (const event of clauseOutput.events) {
-                                const index = result.findIndex((resultLog: any) =>
-                                    resultLog.logIndex === '0x0' &&
-                                    resultLog.transactionIndex === '0x0' &&
-                                    resultLog.blockHash === blockHash &&
-                                    resultLog.transactionHash === transactionHash &&
-                                    resultLog.address === event.address &&
-                                    JSON.stringify(resultLog.topics) === JSON.stringify(event.topics) &&
-                                    resultLog.data === event.data &&
-                                    !resultLog._patched
-                                )
-                                if (index !== -1) {
-                                    result[index].logIndex = `0x${Number(logIndex).toString(16)}`
-                                    result[index].transactionIndex = transactionIndex
-                                    result[index]._patched = true
+                            let logIndex = logIndexOffset
+                            for (const clauseOutput of transaction.outputs) {
+                                for (const event of clauseOutput.events) {
+                                    const index = result.findIndex((resultLog: any) =>
+                                        resultLog.logIndex === '0x0' &&
+                                        resultLog.transactionIndex === '0x0' &&
+                                        resultLog.blockHash === blockHash &&
+                                        resultLog.transactionHash === transactionHash &&
+                                        resultLog.address === event.address &&
+                                        JSON.stringify(resultLog.topics) === JSON.stringify(event.topics) &&
+                                        resultLog.data === event.data &&
+                                        !resultLog._patched
+                                    )
+                                    if (index !== -1) {
+                                        result[index].logIndex = `0x${Number(logIndex).toString(16)}`
+                                        result[index].transactionIndex = transactionIndex
+                                        result[index]._patched = true
+                                    }
+                                    logIndex += 1
                                 }
-                                logIndex += 1
                             }
                         }
+                    })(blockHash, i);
+
+                    activePromises.push(promise);
+
+                    if (activePromises.length >= MAX_PARALLEL_INJECTION_REQUESTS) {
+                        await Promise.race(activePromises);
+                        activePromises = activePromises.filter(p => p !== promise);
                     }
                 }
+
+                await Promise.all(activePromises);
 
                 result = result
                     // remove unwanted data from result

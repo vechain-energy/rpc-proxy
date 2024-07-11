@@ -258,6 +258,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/axios@npm:^0.14.0":
+  version: 0.14.0
+  resolution: "@types/axios@npm:0.14.0"
+  dependencies:
+    axios: "*"
+  checksum: 12a230b9404055d81804cb57fe4739b2317111b28a39e2477b2513250e8b85725e6f6ce509fc2a9494a6da60facb8d80df875fcd747f62f6c3abebc7db60ae66
+  languageName: node
+  linkType: hard
+
 "@types/bn.js@npm:*":
   version: 5.1.5
   resolution: "@types/bn.js@npm:5.1.5"
@@ -281,6 +290,24 @@ __metadata:
   version: 4.3.16
   resolution: "@types/chai@npm:4.3.16"
   checksum: bb5f52d1b70534ed8b4bf74bd248add003ffe1156303802ea367331607c06b494da885ffbc2b674a66b4f90c9ee88759790a5f243879f6759f124f22328f5e95
+  languageName: node
+  linkType: hard
+
+"@types/chalk@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "@types/chalk@npm:2.2.0"
+  dependencies:
+    chalk: "*"
+  checksum: 846437590d0bf0026d8c2f454e5d91a486becfabde61c0441025e791a0fed75304e143717bc4d025569394dcce5a32f2c53d97253d0c735ac1abae63f1b25c3e
+  languageName: node
+  linkType: hard
+
+"@types/commander@npm:^2.12.2":
+  version: 2.12.2
+  resolution: "@types/commander@npm:2.12.2"
+  dependencies:
+    commander: "*"
+  checksum: 8cfc1797b3a6cbff7d723590480c36f5569dc1a9f2810770178ce10de1ed65655ae2ef954c9051fa176760dcf87b1e5330be65ef2e77e58c904be0e299b8b08e
   languageName: node
   linkType: hard
 
@@ -395,6 +422,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/object-hash@npm:^3.0.6":
+  version: 3.0.6
+  resolution: "@types/object-hash@npm:3.0.6"
+  checksum: 2c7979d4e540af817b99c09fb4c2fed1c0b0e14342df474d8dcde4165a82c440b038341fd66fe998d9f86acdd5cccc65ba8092315e39e7c2114f945fa70aaa56
+  languageName: node
+  linkType: hard
+
 "@types/qs@npm:*":
   version: 6.9.15
   resolution: "@types/qs@npm:6.9.15"
@@ -443,14 +477,18 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@vechain.energy/vet-rpc@workspace:."
   dependencies:
+    "@types/axios": ^0.14.0
     "@types/chai": ^4.3.0
+    "@types/chalk": ^2.2.0
+    "@types/commander": ^2.12.2
     "@types/connect-timeout": ^0.0.39
     "@types/cors": ^2.8.17
     "@types/express": ^4.17.21
     "@types/figlet": ^1.5.8
     "@types/mocha": ^10.0.1
     "@types/node": ^20.11.24
-    "@vechain/sdk-network": ^1.0.0-beta.18
+    "@types/object-hash": ^3.0.6
+    "@vechain/sdk-network": 1.0.0-beta.18
     axios: ^1.7.2
     axios-cache-interceptor: ^1.5.3
     chalk: 4
@@ -460,6 +498,7 @@ __metadata:
     express: ^4.18.3
     figlet: ^1.7.0
     nodemon: ^3.1.0
+    object-hash: ^3.0.0
     pm2: ^5.3.1
     thor-devkit: ^2.0.9
     ts-node: ^10.9.2
@@ -488,55 +527,53 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vechain/sdk-core@npm:1.0.0-beta.21":
-  version: 1.0.0-beta.21
-  resolution: "@vechain/sdk-core@npm:1.0.0-beta.21"
+"@vechain/sdk-core@npm:1.0.0-beta.18":
+  version: 1.0.0-beta.18
+  resolution: "@vechain/sdk-core@npm:1.0.0-beta.18"
   dependencies:
     "@ethereumjs/rlp": ^5.0.2
     "@noble/ciphers": ^0.5.2
     "@scure/bip32": ^1.4.0
     "@scure/bip39": ^1.3.0
     "@types/elliptic": ^6.4.18
-    "@vechain/sdk-errors": 1.0.0-beta.21
-    "@vechain/sdk-logging": 1.0.0-beta.21
+    "@vechain/sdk-errors": 1.0.0-beta.18
+    "@vechain/sdk-logging": 1.0.0-beta.18
     bignumber.js: ^9.1.2
     blakejs: ^1.2.1
     elliptic: ^6.5.5
     ethers: 6.13.1
     fast-json-stable-stringify: ^2.1.0
-  checksum: 1a9e360ad4dbaba61fccc9d52d4692c0783f529df84b3b316309a17b68bace6afca9b512f95de2c2e9794c568659d490f89fbfb0a2401517410c3521634f44f4
+  checksum: 6f5e83e2b3bf2ed96cd2150fbaa66ffd20ffab641b0ad65e995e263b203184ae42ec4aac9509d068acd17fdcb33e42889514f71ed98c7b1dbf1f9a0c731fe0f0
   languageName: node
   linkType: hard
 
-"@vechain/sdk-errors@npm:1.0.0-beta.21":
-  version: 1.0.0-beta.21
-  resolution: "@vechain/sdk-errors@npm:1.0.0-beta.21"
-  checksum: b3e1ea93e2e975881c73e7f676fbf6fc89f0eb9eb250b9f6d86c9896f24d44f45a18120c5a3c22dae300f80999032cbe8b5e574ddda1a8a9b9468c227bcdfc6e
+"@vechain/sdk-errors@npm:1.0.0-beta.18":
+  version: 1.0.0-beta.18
+  resolution: "@vechain/sdk-errors@npm:1.0.0-beta.18"
+  checksum: b16c1b2f75672c0d35ae3b54e9e735f1f923ea3033f1d2d121f7ddfd44c6e34155a286b8c1e19770b99f30b8ca7eb40fcd21f253daf30416ca84e3cd596ee7be
   languageName: node
   linkType: hard
 
-"@vechain/sdk-logging@npm:1.0.0-beta.21":
-  version: 1.0.0-beta.21
-  resolution: "@vechain/sdk-logging@npm:1.0.0-beta.21"
+"@vechain/sdk-logging@npm:1.0.0-beta.18":
+  version: 1.0.0-beta.18
+  resolution: "@vechain/sdk-logging@npm:1.0.0-beta.18"
   dependencies:
-    "@vechain/sdk-errors": 1.0.0-beta.21
-  checksum: 4aae7458bdedcba2c4f6b2af5939fd656b9b5421571244072f5c1b7b68c2d93d57754f3ae775a7dc3dba9fc40afe0228b1b720ffe9c9842198d1025a2d717ca6
+    "@vechain/sdk-errors": 1.0.0-beta.18
+  checksum: 4c030c3f7109dc4d39bac16d841c0e8803aa807dbc282f06c770648442dee602e1b215966dd71d4b0137868cc96767e7a06b791fe525cbc1fc5ff61a71427b37
   languageName: node
   linkType: hard
 
-"@vechain/sdk-network@npm:^1.0.0-beta.18":
-  version: 1.0.0-beta.21
-  resolution: "@vechain/sdk-network@npm:1.0.0-beta.21"
+"@vechain/sdk-network@npm:1.0.0-beta.18":
+  version: 1.0.0-beta.18
+  resolution: "@vechain/sdk-network@npm:1.0.0-beta.18"
   dependencies:
     "@types/ws": ^8.5.10
-    "@vechain/sdk-core": 1.0.0-beta.21
-    "@vechain/sdk-errors": 1.0.0-beta.21
-    "@vechain/sdk-logging": 1.0.0-beta.21
-    abitype: ^1.0.5
+    "@vechain/sdk-core": 1.0.0-beta.18
+    "@vechain/sdk-errors": 1.0.0-beta.18
+    "@vechain/sdk-logging": 1.0.0-beta.18
+    abitype: ^1.0.2
     axios: ^1.7.2
-    isomorphic-ws: ^5.0.0
-    ws: ^8.18.0
-  checksum: 55b1de4279514dcb538dfabb38f87220c2b661c5ff9546221cdca6932ef2d7f031401527c26412a059f899f3b0acc1d768e683e41a6845525c664e6165a65147
+  checksum: baf6c937da17c6530a4f61c41a02f616329469d934ad56189fbc5f52514dce9a83e4fab3c609c97b91b472c542948daf4aedee135a6a6ea8817f30278e897b88
   languageName: node
   linkType: hard
 
@@ -547,7 +584,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"abitype@npm:^1.0.5":
+"abitype@npm:^1.0.2":
   version: 1.0.5
   resolution: "abitype@npm:1.0.5"
   peerDependencies:
@@ -752,7 +789,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.7.2":
+"axios@npm:*, axios@npm:^1.7.2":
   version: 1.7.2
   resolution: "axios@npm:1.7.2"
   dependencies:
@@ -905,8 +942,8 @@ __metadata:
   linkType: hard
 
 "cacache@npm:^18.0.0":
-  version: 18.0.3
-  resolution: "cacache@npm:18.0.3"
+  version: 18.0.4
+  resolution: "cacache@npm:18.0.4"
   dependencies:
     "@npmcli/fs": ^3.1.0
     fs-minipass: ^3.0.0
@@ -920,7 +957,7 @@ __metadata:
     ssri: ^10.0.0
     tar: ^6.1.11
     unique-filename: ^3.0.0
-  checksum: b717fd9b36e9c3279bfde4545c3a8f6d5a539b084ee26a9504d48f83694beb724057d26e090b97540f9cc62bea18b9f6cf671c50e18fb7dac60eda9db691714f
+  checksum: b7422c113b4ec750f33beeca0f426a0024c28e3172f332218f48f963e5b970647fa1ac05679fe5bb448832c51efea9fda4456b9a95c3a1af1105fe6c1833cde2
   languageName: node
   linkType: hard
 
@@ -941,6 +978,13 @@ __metadata:
     get-intrinsic: ^1.2.4
     set-function-length: ^1.2.1
   checksum: 295c0c62b90dd6522e6db3b0ab1ce26bdf9e7404215bda13cfee25b626b5ff1a7761324d58d38b1ef1607fc65aca2d06e44d2e18d0dfc6c14b465b00d8660029
+  languageName: node
+  linkType: hard
+
+"chalk@npm:*":
+  version: 5.3.0
+  resolution: "chalk@npm:5.3.0"
+  checksum: 623922e077b7d1e9dedaea6f8b9e9352921f8ae3afe739132e0e00c275971bdd331268183b2628cf4ab1727c45ea1f28d7e24ac23ce1db1eb653c414ca8a5a80
   languageName: node
   linkType: hard
 
@@ -1035,6 +1079,13 @@ __metadata:
   dependencies:
     delayed-stream: ~1.0.0
   checksum: 49fa4aeb4916567e33ea81d088f6584749fc90c7abec76fd516bf1c5aa5c79f3584b5ba3de6b86d26ddd64bae5329c4c7479343250cfe71c75bb366eae53bb7c
+  languageName: node
+  linkType: hard
+
+"commander@npm:*":
+  version: 12.1.0
+  resolution: "commander@npm:12.1.0"
+  checksum: 68e9818b00fc1ed9cdab9eb16905551c2b768a317ae69a5e3c43924c2b20ac9bb65b27e1cab36aeda7b6496376d4da908996ba2c0b5d79463e0fb1e77935d514
   languageName: node
   linkType: hard
 
@@ -2034,15 +2085,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"isomorphic-ws@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "isomorphic-ws@npm:5.0.0"
-  peerDependencies:
-    ws: "*"
-  checksum: e20eb2aee09ba96247465fda40c6d22c1153394c0144fa34fe6609f341af4c8c564f60ea3ba762335a7a9c306809349f9b863c8beedf2beea09b299834ad5398
-  languageName: node
-  linkType: hard
-
 "jackspeak@npm:^3.1.2":
   version: 3.4.3
   resolution: "jackspeak@npm:3.4.3"
@@ -2489,6 +2531,13 @@ __metadata:
   version: 1.3.3
   resolution: "object-code@npm:1.3.3"
   checksum: 5f5602040a9d0e0f5e60e37340a21d8ab3d41309c7b7f63eeccf4d385686d8e1b408090f2a35899a84d740fbf6e243599208349027060b71f9911099a47714f8
+  languageName: node
+  linkType: hard
+
+"object-hash@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "object-hash@npm:3.0.0"
+  checksum: 80b4904bb3857c52cc1bfd0b52c0352532ca12ed3b8a6ff06a90cd209dfda1b95cee059a7625eb9da29537027f68ac4619363491eedb2f5d3dddbba97494fd6c
   languageName: node
   linkType: hard
 
@@ -3564,21 +3613,6 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: f9bb062abf54cc8f02d94ca86dcd349c3945d63851f5d07a3a61c2fcb755b15a88e943a63cf580cbdb5b74436d67ef6b67f745b8f7c0814e411379138e1863cb
-  languageName: node
-  linkType: hard
-
-"ws@npm:^8.18.0":
-  version: 8.18.0
-  resolution: "ws@npm:8.18.0"
-  peerDependencies:
-    bufferutil: ^4.0.1
-    utf-8-validate: ">=5.0.2"
-  peerDependenciesMeta:
-    bufferutil:
-      optional: true
-    utf-8-validate:
-      optional: true
-  checksum: 91d4d35bc99ff6df483bdf029b9ea4bfd7af1f16fc91231a96777a63d263e1eabf486e13a2353970efc534f9faa43bdbf9ee76525af22f4752cbc5ebda333975
   languageName: node
   linkType: hard
 
