@@ -5,8 +5,9 @@ import figlet from "figlet"
 import chalk from 'chalk'
 import express from 'express'
 import cors from 'cors'
-import { type ExpandedBlockDetail, ThorClient, VeChainProvider } from '@vechain/sdk-network';
-import LRUCache from 'mnemonist/lru-cache';
+import { type ExpandedBlockDetail, ThorClient, VeChainProvider, HttpClient } from '@vechain/sdk-network';
+import Axios from 'axios'
+import { buildMemoryStorage, setupCache } from 'axios-cache-interceptor';
 
 const version = require('../package.json').version;
 BigInt.prototype.toJSON = function () { return this.toString(); }
@@ -40,9 +41,22 @@ async function startProxy() {
     console.log("Cache:", chalk.grey(options.disableCache ? 'Disabled' : `${options.cacheItems} items`))
     console.log("")
 
-    const thorClient = ThorClient.fromUrl(options.node)
+
+    const axiosInstance = options.disableCache
+        ? Axios.create({
+            baseURL: options.node,
+        })
+        : setupCache(
+            Axios.create({
+                baseURL: options.node,
+            }),
+            {
+                storage: buildMemoryStorage(false, 10000, options.cacheItems),
+            });
+
+    const httpClient = new HttpClient(options.node, { axiosInstance })
+    const thorClient = new ThorClient(httpClient)
     const provider = new VeChainProvider(thorClient);
-    const blockCache = new LRUCache<string, ExpandedBlockDetail>(Number(100000));
 
     // setup webserver to listen for request
     const app = express()
@@ -119,13 +133,9 @@ async function startProxy() {
                     const blockHash = uniqueBlockHashes[blockIndex]
                     if (options.verbose) { console.log(chalk.bgRed.grey(`-> Patch: logIndex and transactionIndex injection (Block ${Number(blockIndex) + 1}/${uniqueBlockHashes.length})`)) }
 
-                    const isCached = !options.disableCache && blockCache.has(blockHash)
-                    const block = isCached
-                        ? blockCache.get(blockHash)
-                        : await thorClient.blocks.getBlockExpanded(blockHash)
+                    const block = await thorClient.blocks.getBlockExpanded(blockHash)
 
                     if (!block) { throw new Error(`Unable to load block details for "${blockHash}`) }
-                    if (!options.disableCache && !isCached) blockCache.set(blockHash, block)
 
                     for (const transactionHash of blockTransactionMap[blockHash]) {
                         const transactionIndex = `0x${Number(getTransactionIndexIntoBlock(block, transactionHash)).toString(16)}`

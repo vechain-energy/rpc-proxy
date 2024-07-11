@@ -1,6 +1,6 @@
 {
   "name": "@vechain.energy/vet-rpc",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "packageManager": "yarn@3.6.1",
   "bin": "dist/rpc.js",
   "main": "dist/rpc.js",
@@ -14,13 +14,14 @@
   },
   "dependencies": {
     "@vechain/sdk-network": "^1.0.0-beta.18",
+    "axios": "^1.7.2",
+    "axios-cache-interceptor": "^1.5.3",
     "chalk": "4",
     "commander": "11",
     "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
     "express": "^4.18.3",
-    "figlet": "^1.7.0",
-    "mnemonist": "^0.39.8"
+    "figlet": "^1.7.0"
   },
   "devDependencies": {
     "@types/chai": "^4.3.0",
@@ -42,7 +43,7 @@
     "start": "node dist/rpc.js",
     "daemon:up": "pm2 start dist/rpc.js --max-memory-restart 512M",
     "daemon:down": "pm2 stop dist/rpc.js",
-    "watch": "nodemon -e ts --exec 'yarn build && yarn start'",
+    "watch": "nodemon -e ts --exec 'npm run build && npm run start'",
     "prepublish": "tsc",
     "postinstall": "./patches.sh"
   }
