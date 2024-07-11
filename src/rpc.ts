@@ -51,7 +51,15 @@ async function startProxy() {
                 baseURL: options.node,
             }),
             {
+                methods: ['get'],
                 storage: buildMemoryStorage(false, 10000, options.cacheItems),
+                cachePredicate: {
+                    ignoreUrls: [
+                        /\/best$/,
+                        /\/accounts\//,
+                        /\/best\?expanded=true$/
+                    ]
+                }
             });
 
     const httpClient = new HttpClient(options.node, { axiosInstance })
