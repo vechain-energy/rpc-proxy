@@ -1,4 +1,6 @@
-A simplified RPC proxy for accessing Vechain nodes via RPC calls. Publishing transactions is **not** supported.
+A simple RPC proxy to access Vechain nodes via RPC calls. It does **not** support publishing transactions.
+
+You can optionally cache requests to node sources to improve performance.
 
 **Setup**
 
@@ -13,22 +15,28 @@ vet-rpc --node https://node-mainnet.vechain.energy --port 8545
 ```shell
 $ vet-rpc --help
                   
-  _ __ _ __   ___ 
- | '__| '_ \ / __|
- | |  | |_) | (__ 
- |_|  | .__/ \___|
-      |_|         
 
-Usage: vet-rpc [options]
+                    _   __    ___  
+  _ __ _ __   ___  / | / /_  / _ \ 
+ | '__| '_ \ / __| | || '_ \| | | |
+ | |  | |_) | (__  | || (_) | |_| |
+ |_|  | .__/ \___| |_(_)___(_)___/ 
+      |_|                          
+
+Usage: rpc [options]
 
 vechain rpc proxy
 
 Options:
-  -V, --version      output the version number
-  -n, --node <url>   Node URL of the blockchain (default: "https://node-mainnet.vechain.energy", env: NODE_URL)
-  -p, --port <port>  Port to listen on (default: "8545", env: PORT)
-  -v, --verbose      Enables more detailed logging
-  -h, --help         display help for command
+  -V, --version                         output the version number
+  -n, --node <url>                      Node URL of the blockchain (default: "https://node-mainnet.vechain.energy", env: NODE_URL)
+  -p, --port <port>                     Port to listen on (default: "8545", env: PORT)
+  -v, --verbose                         Enables more detailed logging (default: false, env: VERBOSE)
+  --disable-cache                       Disable caching for immutable results (env: DISABLE_CACHE)
+  --cache-limit <number>                Number of maximum cacheabled items for memory or ttl seconds for redis (default: 100000, env: CACHE_ITEMS)
+  --cache-storage <memory | redis url>  Cache storage location (default: "memory", env: CACHE_STORAGE)
+  -h, --help                            display help for command
+
 ```
 
 **Run as daemon from code**

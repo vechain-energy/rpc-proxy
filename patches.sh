@@ -1,4 +1,7 @@
 #!/usr/bin/env sh
 
-patch -p0 --silent < patches/getLogs-disable-limits.diff
-patch -p0 --silent < patches/transactionFormatter.diff
+for i in ./patches/*.diff; do 
+    if patch -Np0 -f -s --dry-run < $i; then
+        patch -Np0 -f < $i
+    fi
+done
