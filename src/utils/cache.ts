@@ -69,6 +69,7 @@ export async function fetchAxiosInstance(options: OptionValues): Promise<AxiosIn
             }),
             cachePredicate: {
                 responseMatch(res) {
+                    if (res.data === null) { return false }
                     if (options.verbose) {
                         console.log(res.id, res.request?.method, res.request?.path)
                     }

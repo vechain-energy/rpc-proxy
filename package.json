@@ -1,6 +1,6 @@
 {
   "name": "@vechain.energy/vet-rpc",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "packageManager": "yarn@3.6.1",
   "bin": "dist/rpc.js",
   "main": "dist/rpc.js",
