@@ -5,8 +5,9 @@ import figlet from "figlet"
 import chalk from 'chalk'
 import express from 'express'
 import cors from 'cors'
-import { type ExpandedBlockDetail, ThorClient, VeChainProvider, HttpClient } from '@vechain/sdk-network';
-import { fetchAxiosInstance } from "./utils/cache"
+import { ThorClient, VeChainProvider } from '@vechain/sdk-network';
+import { ethGetLogs } from "./patchedNode/ethGetLogs"
+import { testPatchedNode } from './patchedNode/testPatchedNode'
 
 const version = require('../package.json').version;
 BigInt.prototype.toJSON = function () { return this.toString(); }
@@ -19,11 +20,9 @@ program
     .version(version)
     .description("vechain rpc proxy")
     .addOption(new Option('-n, --node <url>', 'Node URL of the blockchain').env('NODE_URL').default('https://node-mainnet.vechain.energy'))
+    .addOption(new Option('-pn, --patched-node <url>', 'Patched Node URL of the blockchain').env('PATCHED_NODE_URL'))
     .addOption(new Option('-p, --port <port>', 'Port to listen on').env('PORT').default('8545'))
     .addOption(new Option('-v, --verbose', 'Enables more detailed logging').env('VERBOSE').default(false))
-    .addOption(new Option('--disable-cache', 'Disable caching for immutable results').env('DISABLE_CACHE'))
-    .addOption(new Option('--cache-limit <number>', 'Number of maximum cacheabled items for memory or ttl seconds for redis').env('CACHE_ITEMS').default(100000).conflicts('disableCache'))
-    .addOption(new Option('--cache-storage <memory | redis url>', 'Cache storage location').env('CACHE_STORAGE').default('memory').conflicts('disableCache'))
     .parse(process.argv)
 
 const options = program.opts()
@@ -37,14 +36,19 @@ async function startProxy() {
     console.log(chalk.green("Starting Vechain RPC-Proxy"))
     console.log("")
     console.log("Node:", chalk.grey(options.node))
+    console.log("Patched Node:", chalk.grey(options.patchedNode ?? '–'))
     console.log("Port:", chalk.grey(options.port))
-    console.log("Cache:", chalk.grey(options.disableCache ? 'Disabled' : `Storage: ${options.cacheStorage.split(':')[0]}, Limit: ${options.cacheLimit}`))
     console.log("")
 
+    const isPatchedNode = options.patchedNode ? await testPatchedNode(options.patchedNode) : await testPatchedNode(options.node)
+    if (isPatchedNode) {
+        console.log(chalk.green("» detected patched pode, will leverage it for eth_getLogs"))
+        console.log("")
+    }
+
+
     // create vechain provider connected to the given node
-    const axiosInstance = await fetchAxiosInstance(options)
-    const httpClient = new HttpClient(options.node, { axiosInstance })
-    const thorClient = new ThorClient(httpClient)
+    const thorClient = ThorClient.fromUrl(options.node)
     const provider = new VeChainProvider(thorClient);
 
     // setup webserver to listen for request
@@ -67,44 +71,17 @@ async function startProxy() {
                 params[0] = `0x${Number(params[0]).toString(16)}`
             }
 
-            let result: any | any[] = []
-
-            // https://github.com/vechain/vechain-sdk-js/issues/1016
-            if (method === 'eth_getLogs' && params[0].address === null) {
-                if (options.verbose) { console.log(chalk.bgRed.grey('-> Patch #1016')) }
-                delete params[0].address
-            }
-
-            // https://github.com/vechain/vechain-sdk-js/issues/1015
-            if (method === 'eth_getLogs' && Array.isArray(params[0].topics[0])) {
-                if (options.verbose) { console.log(chalk.bgRed.grey('-> Patch #1015')) }
-                const results = await Promise.all(params[0].topics[0].map(topicHash =>
-                    provider.request({
-                        method,
-                        params: [
-                            {
-                                ...params[0],
-                                topics: [
-                                    topicHash,
-                                    ...params[0].topics.slice(1)
-                                ]
-                            }
-                        ]
-                    }) as any))
-                result = results.flat()
+            let result: any
+            if (method === 'eth_getLogs' && isPatchedNode) {
+                if (options.verbose) { console.log(chalk.bgRed.grey('-> Using Patched Node')) }
+                result = await ethGetLogs({ method, params, nodeUrl: options.patchedNode ?? options.node }) as any
             }
             else {
                 result = await provider.request({ method, params }) as any
             }
 
-            // https://github.com/vechain/vechain-sdk-js/issues/1014
-            if (['eth_getBlockByNumber', 'eth_getBlockByHash'].includes(method) && params[1] === false) {
-                if (options.verbose) { console.log(chalk.bgRed.grey('-> Patch #1014')) }
-                result.transactions = result.transactions.map((tx: any) => typeof (tx) !== 'string' ? tx.hash : tx)
-            }
-
             // Fix missing logIndex, huge performance hit but neccessary for compatibility
-            if (method === 'eth_getLogs') {
+            if (method === 'eth_getLogs' && !isPatchedNode) {
                 if (options.verbose) { console.log(chalk.bgRed.grey('-> Patch: logIndex and transactionIndex injection')) }
                 // will use transactionReceipts instead of accessing getBlockExpanded, to rely on existing rpc convertion
                 // @TODO: decide about approach based on stability (existing rpc functions) or speed  (direct node access)
@@ -122,34 +99,27 @@ async function startProxy() {
                     const blockHash = uniqueBlockHashes[blockIndex]
                     if (options.verbose) { console.log(chalk.bgRed.grey(`-> Patch: logIndex and transactionIndex injection (Block ${Number(blockIndex) + 1}/${uniqueBlockHashes.length})`)) }
 
-                    const block = await thorClient.blocks.getBlockExpanded(blockHash)
-                    if (!block) { throw new Error(`Unable to load block details for "${blockHash}`) }
+                    const blockReceipts = await provider.request({ method: 'eth_getBlockReceipts', params: [blockHash] }) as any
+                    if (!blockReceipts) { throw new Error(`Unable to load block details for "${blockHash}`) }
 
-                    for (const transactionHash of blockTransactionMap[blockHash]) {
-                        const transactionIndex = `0x${Number(getTransactionIndexIntoBlock(block, transactionHash)).toString(16)}`
-                        const logIndexOffset = getNumberOfLogsAheadOfTransactionIntoBlockExpanded(block, transactionHash);
-                        const transaction = block.transactions.find(tx => tx.id === transactionHash)
-                        if (!transaction) { throw new Error(`Unable to load transaction details for "${transactionHash}`) }
-
-                        let logIndex = logIndexOffset
-                        for (const clauseOutput of transaction.outputs) {
-                            for (const event of clauseOutput.events) {
-                                const index = result.findIndex((resultLog: any) =>
-                                    resultLog.logIndex === '0x0' &&
-                                    resultLog.transactionIndex === '0x0' &&
-                                    resultLog.blockHash === blockHash &&
-                                    resultLog.transactionHash === transactionHash &&
-                                    resultLog.address === event.address &&
-                                    JSON.stringify(resultLog.topics) === JSON.stringify(event.topics) &&
-                                    resultLog.data === event.data &&
-                                    !resultLog._patched
-                                )
-                                if (index !== -1) {
-                                    result[index].logIndex = `0x${Number(logIndex).toString(16)}`
-                                    result[index].transactionIndex = transactionIndex
-                                    result[index]._patched = true
-                                }
-                                logIndex += 1
+                    for (const transaction of blockReceipts) {
+                        for (const log of transaction.logs) {
+                            const index = result.findIndex((resultLog: any) =>
+                                !resultLog._patched &&
+                                resultLog.logIndex === '0x0' &&
+                                resultLog.transactionIndex === '0x0' &&
+                                resultLog.blockNumber === log.blockNumber &&
+                                resultLog.blockHash === log.blockHash &&
+                                resultLog.blockHash === blockHash &&
+                                resultLog.transactionHash === log.transactionHash &&
+                                resultLog.address === log.address &&
+                                resultLog.data === log.data &&
+                                JSON.stringify(resultLog.topics) === JSON.stringify(log.topics)
+                            )
+                            if (index !== -1) {
+                                result[index].logIndex = log.logIndex
+                                result[index].transactionIndex = log.transactionIndex
+                                result[index]._patched = true
                             }
                         }
                     }
@@ -181,7 +151,7 @@ async function startProxy() {
                 error = e.data
             }
             else if ('data' in e && typeof (e.data) !== 'string' && e.data !== undefined) {
-                error = `the method ${req.body.method ?? 'unknown'} does not exist/is not available`
+                error = `the method ${req.body.method ?? 'unknown'} does not exist/is not available (params: ${JSON.stringify(req.body.params)})`
             }
 
             if (options.verbose) {
@@ -194,35 +164,3 @@ async function startProxy() {
 }
 
 startProxy().catch(console.error)
-
-
-const getTransactionIndexIntoBlock = (blockExpanded: ExpandedBlockDetail, hash: string): number => {
-    const idx = blockExpanded.transactions.findIndex(
-        (tx) => tx.id === hash
-    )
-
-    if (idx === -1) { throw new Error(`Could not locate transactionIndex for "${hash}"`) }
-    return idx;
-};
-
-const getNumberOfLogsAheadOfTransactionIntoBlockExpanded = (
-    blockExpanded: ExpandedBlockDetail,
-    transactionId: string
-): number => {
-    // Get transaction index into the block
-    const transactionIndex = getTransactionIndexIntoBlock(blockExpanded, transactionId);
-
-    let logIndex = 0;
-
-    // Iterate over the transactions into the block bounded by the transaction index
-    for (let i = 0; i < transactionIndex; i++) {
-        const currentTransaction = blockExpanded.transactions[i];
-
-        // Iterate over the outputs of the current transaction
-        for (const output of currentTransaction.outputs) {
-            logIndex += output.events.length;
-        }
-    }
-
-    return logIndex;
-};
