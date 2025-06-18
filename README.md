@@ -12,13 +12,13 @@ vet-rpc --node https://node-mainnet.vechain.energy --port 8545
 
 ```shell
 $ vet-rpc --help
-                  
-                    _  _____ ___  
-  _ __ _ __   ___  / ||___  / _ \ 
- | '__| '_ \ / __| | |   / / | | |
- | |  | |_) | (__  | |_ / /| |_| |
- |_|  | .__/ \___| |_(_)_(_)\___/ 
-      |_|                         
+
+                    _   ___   ___  
+  _ __ _ __   ___  / | ( _ ) / _ \ 
+ | '__| '_ \ / __| | | / _ \| | | |
+ | |  | |_) | (__  | || (_) | |_| |
+ |_|  | .__/ \___| |_(_)___(_)___/ 
+      |_|                          
 
 Usage: rpc [options]
 
@@ -26,9 +26,8 @@ vechain rpc proxy
 
 Options:
   -V, --version              output the version number
-  -n, --node <url>           Node URL of the blockchain (default: "https://node-mainnet.vechain.energy", env:
+  -n, --node <url>           Node URL of the blockchain (default: "https://mainnet.vechain.org", env:
                              NODE_URL)
-  -pn, --patched-node <url>  Patched Node URL of the blockchain (env: PATCHED_NODE_URL)
   -p, --port <port>          Port to listen on (default: "8545", env: PORT)
   -v, --verbose              Enables more detailed logging (default: false, env: VERBOSE)
   -h, --help                 display help for command
@@ -38,7 +37,7 @@ Options:
 **Run as daemon from code**
 
 ```shell
-$ NODE_URL="https://node-testnet.vechain.energy" yarn daemon:up --name rpc
+$ NODE_URL="https://testnet.vechain.org" yarn daemon:up --name rpc
 [PM2] Applying action restartProcessId on app [rpc](ids: [ 0 ])
 [PM2] [rpc](0) ✓
 [PM2] Process successfully started

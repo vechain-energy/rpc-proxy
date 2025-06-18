@@ -1,6 +1,6 @@
 {
   "name": "@vechain.energy/vet-rpc",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "packageManager": "yarn@3.6.1",
   "bin": "dist/rpc.js",
   "main": "dist/rpc.js",
@@ -13,7 +13,7 @@
     "url": "https://github.com/vechain-energy/rpc-proxy/issues"
   },
   "dependencies": {
-    "@vechain/sdk-network": "^1.0.0-beta.24",
+    "@vechain/sdk-network": "^1.2.0",
     "chalk": "4",
     "commander": "11",
     "connect-timeout": "^1.9.0",
@@ -33,10 +33,9 @@
     "@types/node": "^20.11.24",
     "nodemon": "^3.1.0",
     "pm2": "^5.3.1",
-    "thor-devkit": "^2.0.9",
     "ts-node": "^10.9.2",
     "tsc": "^2.0.4",
-    "typescript": "^5.3.3"
+    "typescript": "^5.8.3"
   },
   "scripts": {
     "build": "tsc",
@@ -44,7 +43,6 @@
     "daemon:up": "pm2 start dist/rpc.js --max-memory-restart 512M",
     "daemon:down": "pm2 stop dist/rpc.js",
     "watch": "nodemon -e ts --exec 'npm run build && npm run start'",
-    "prepublish": "tsc",
-    "postinstall": "./patches.sh"
+    "prepublish": "tsc"
   }
 }

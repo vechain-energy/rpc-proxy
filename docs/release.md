@@ -16,4 +16,7 @@ docker push ifavo/vet-rpc
 
 docker image tag ifavo/vet-rpc ifavo/vet-rpc:$VERSION
 docker push ifavo/vet-rpc:$VERSION
+
+fly deploy -a rpc-proxy-testnet --image ifavo/vet-rpc:$VERSION
+fly deploy -a rpc-proxy --image ifavo/vet-rpc:$VERSION
 ```
