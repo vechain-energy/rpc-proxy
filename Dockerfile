@@ -3,6 +3,7 @@ FROM node:18
 WORKDIR /app
 
 ADD ./ /app
+RUN corepack enable
 RUN yarn install
 RUN yarn build
 
