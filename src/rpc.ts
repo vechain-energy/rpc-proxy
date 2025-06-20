@@ -7,6 +7,7 @@ import express from "express";
 import cors from "cors";
 import { ThorClient, VeChainProvider } from "@vechain/sdk-network";
 import { ethGetLogs } from "./customRequests/ethGetLogs";
+import { isBlockHash } from "./utils";
 
 const version = require("../package.json").version;
 BigInt.prototype.toJSON = function () {
@@ -77,8 +78,40 @@ async function startProxy() {
         params[0] = `0x${Number(params[0]).toString(16)}`;
       }
 
+      if (method === "eth_call" && params[1]) {
+        let blockHash: string | undefined;
 
-      if (method === 'eth_getBlockReceipts') { throw new Error('eth_getBlockReceipts is not supported') }
+        if (
+          typeof params[1] === "object" &&
+          params[1] !== null &&
+          "blockHash" in params[1] &&
+          isBlockHash(params[1].blockHash)
+        ) {
+          blockHash = params[1].blockHash;
+        } else if (isBlockHash(params[1])) {
+          blockHash = params[1];
+        }
+
+        if (blockHash) {
+          if (options.verbose) {
+            console.log(
+              chalk.blue(
+                `compat(eth_call): detected block hash, converting to block number for hash ${blockHash}`,
+              ),
+            );
+          }
+          const block = await thorClient.blocks.getBlockCompressed(blockHash);
+          if (block) {
+            params[1] = `0x${block.number.toString(16)}`;
+          } else {
+            throw new Error(`Block with hash ${blockHash} not found`);
+          }
+        }
+      }
+
+      if (method === "eth_getBlockReceipts") {
+        throw new Error("eth_getBlockReceipts is not supported");
+      }
 
       let result: any;
       if (method === "eth_getLogs") {
@@ -94,11 +127,36 @@ async function startProxy() {
         result = (await provider.request({ method, params })) as any;
       }
 
+      if (
+        (method === "eth_getBlockByHash" ||
+          method === "eth_getBlockByNumber") &&
+        result?.transactions
+      ) {
+        for (const tx of result.transactions) {
+          if (tx.value === "") {
+            tx.value = "0x0";
+          }
+          if (tx.input === "") {
+            tx.input = "0x";
+          }
+        }
+      }
+
       if (options.verbose) {
         console.log(chalk.grey("<-"), chalk.grey(JSON.stringify(result)));
       }
       res.json({ jsonrpc: "2.0", id: req.body.id, result });
     } catch (e: any) {
+
+      if (e.message.includes('Method "eth_call" failed when simulating the transaction.')) {
+        if (options.verbose) {
+          console.log(chalk.grey("<-"), chalk.grey("eth_call failed, returning 0x"));
+        }
+
+        res.json({ jsonrpc: "2.0", id: req.body.id, result: "0x" });
+        return
+      }
+
       let error = e;
       if ("data" in e && typeof e.data === "string") {
         error = e.data;
