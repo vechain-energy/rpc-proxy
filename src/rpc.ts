@@ -8,6 +8,7 @@ import cors from "cors";
 import { ThorClient, VeChainProvider } from "@vechain/sdk-network";
 import { ethGetLogs } from "./customRequests/ethGetLogs";
 import { isBlockHash } from "./utils";
+import { ethGetBlockReceipts } from "./customRequests/ethGetBlockReceipts";
 
 const version = require("../package.json").version;
 BigInt.prototype.toJSON = function () {
@@ -109,10 +110,6 @@ async function startProxy() {
         }
       }
 
-      if (method === "eth_getBlockReceipts") {
-        throw new Error("eth_getBlockReceipts is not supported");
-      }
-
       let result: any;
       if (method === "eth_getLogs") {
         if (options.verbose) {
@@ -121,8 +118,13 @@ async function startProxy() {
         result = (await ethGetLogs({
           method,
           params,
-          nodeUrl: options.patchedNode ?? options.node,
+          nodeUrl: options.node,
         })) as any;
+      } else if (method === "eth_getBlockReceipts") {
+        if (options.verbose) {
+          console.log(chalk.bgRed.grey("-> Using custom eth_getBlockReceipts"));
+        }
+        result = await ethGetBlockReceipts({ params, nodeUrl: options.node });
       } else {
         result = (await provider.request({ method, params })) as any;
       }
