@@ -9,6 +9,7 @@ import { ThorClient, VeChainProvider } from "@vechain/sdk-network";
 import { ethGetLogs } from "./customRequests/ethGetLogs";
 import { isBlockHash } from "./utils";
 import { ethGetBlockReceipts } from "./customRequests/ethGetBlockReceipts";
+import { ethGetTransactionReceipt } from "./customRequests/ethGetTransactionReceipt";
 
 const version = require("../package.json").version;
 BigInt.prototype.toJSON = function () {
@@ -71,9 +72,11 @@ async function startProxy() {
 
   // This function handles incoming requests, processes them using the provider, and returns the appropriate response.
   async function handleRequest(req: express.Request, res: express.Response) {
+    let { method, params } = req.body;
+    console.log(chalk.grey("->"), method, chalk.grey(JSON.stringify(params)));
+    
+    let result: any;
     try {
-      let { method, params } = req.body;
-      console.log(chalk.grey("->"), method, chalk.grey(JSON.stringify(params)));
 
       if (method === "eth_getBlockByNumber" && typeof params[0] === "number") {
         params[0] = `0x${Number(params[0]).toString(16)}`;
@@ -159,6 +162,28 @@ async function startProxy() {
         return
       }
 
+      // Special handling for eth_getTransactionReceipt failures
+      if (method === "eth_getTransactionReceipt" && e.message.includes('Method "eth_getTransactionReceipt" failed')) {
+        if (options.verbose) {
+          console.log(chalk.grey("<-"), chalk.grey("eth_getTransactionReceipt failed, trying custom handler"));
+        }
+        
+        try {
+          result = await ethGetTransactionReceipt({ params, nodeUrl: options.node });
+          if (options.verbose) {
+            console.log(chalk.grey("<-"), chalk.grey(JSON.stringify(result)));
+          }
+          res.json({ jsonrpc: "2.0", id: req.body.id, result });
+          return;
+        } catch (fallbackError) {
+          if (options.verbose) {
+            console.log(chalk.grey("<-"), chalk.grey("Custom handler also failed, returning null"));
+          }
+          res.json({ jsonrpc: "2.0", id: req.body.id, result: null });
+          return;
+        }
+      }
+
       let error = e;
       if ("data" in e && typeof e.data === "string") {
         error = e.data;
@@ -174,8 +199,7 @@ async function startProxy() {
       }
 
       if (options.verbose) {
-        console.error(error);
-        console.log(chalk.red("<- error:"), chalk.grey(e.data));
+        console.log(chalk.red("<- error:"), chalk.grey(e.data), chalk.grey(e.stack));
       }
       res.json({ jsonrpc: "2.0", id: req.body.id, error });
     }
