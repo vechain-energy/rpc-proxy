@@ -14,15 +14,16 @@ export type VeChainRPCReceipt = {
     blockNumber: string;
     contractAddress: string | null;
     cumulativeGasUsed: string;
+    effectiveGasPrice: string;
     from: string;
     gasUsed: string;
     logs: VeChainRPCLog[];
     logsBloom: string;
-    root: string;
     status: string;
     to: string | null;
     transactionHash: string;
     transactionIndex: string;
+    type: string;
 }
 
 /**
@@ -91,15 +92,16 @@ export const ethGetTransactionReceipt = async (
             blockNumber: txMeta.blockNumber,
             contractAddress: Array.isArray(tx.outputs) && tx.outputs[0]?.contractAddress ? tx.outputs[0].contractAddress : null,
             cumulativeGasUsed: `0x${gasUsed.toString(16)}`,
+            effectiveGasPrice: "0x0",
             from: tx.origin,
             gasUsed: `0x${gasUsed.toString(16)}`,
             logs: allEvents,
             logsBloom: '0x' + '0'.repeat(512),
-            root: '', // This would need to be fetched from the block if needed
             status: tx.reverted ? '0x0' : '0x1',
             to: Array.isArray(tx.clauses) && tx.clauses.length > 0 ? tx.clauses[0]?.to ?? null : null,
             transactionHash: txMeta.transactionHash,
             transactionIndex: txMeta.transactionIndex,
+            type: "0x2"
         };
     } catch (error) {
         // If any error occurs during the request, return null
